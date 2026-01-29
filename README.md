@@ -1,99 +1,43 @@
-# Auto-Bot Project (Cleanbot)
+# CleanBot System
 
-Dự án phát triển Bot tự động hóa hoạt động 24/7, tích hợp Telegram để điều khiển và giám sát. Bot được thiết kế theo kiến trúc module, dễ dàng mở rộng và bảo trì.
+## Project Overview
+CleanBot is an automated system designed to handle cleaning and summarization tasks. It operates on a continuous loop, processing commands from a queue and executing them asynchronously. The system is designed for reliability and ease of maintenance.
 
-## Cấu trúc Dự án
+## Architecture
+The project follows a modular structure contained entirely within the `auto-bot/` directory:
 
-```text
-auto-bot/
-├── config/
-│   ├── settings.yaml       # Cấu hình chung (Global config)
-│   └── secrets.env         # Biến môi trường (Token, API Key - KHÔNG COMMIT FILE NÀY)
-├── core/
-│   ├── engine.py           # Bộ não trung tâm, vòng lặp xử lý chính
-│   ├── task_queue.py       # Hàng đợi ưu tiên (đa nhiệm)
-│   ├── scheduler.py        # Lập lịch chạy task (cron job)
-│   └── memory.py           # Quản lý ngữ cảnh (RAM & Database)
-├── interfaces/
-│   └── telegram_bot.py     # Giao diện điều khiển qua Telegram
-├── skills/
-│   ├── network_scanner.py  # Chức năng quét mạng
-│   ├── file_manager.py     # Quản lý file
-│   └── web_search.py       # Tìm kiếm thông tin
-├── database/
-│   ├── models.py           # Định nghĩa cấu trúc dữ liệu (ORM)
-│   └── storage.py          # Kết nối CSDL
-├── main.py                 # File chạy chính
-├── requirements.txt        # Thư viện cần thiết
-└── Dockerfile              # Cấu hình để chạy 24/7
-```
+*   **main.py**: The entry point of the application.
+*   **requirements.txt**: List of Python dependencies.
 
-## Phân Chia Công Việc (Nhóm 2 Người)
+## Workflow and Collaboration
+This project utilizes a simplified Feature-Branch workflow to ensure code stability in the `main` branch.
 
-Để tối ưu hóa cho team 2 người, công việc được chia theo thế mạnh và chức năng để tránh va chạm code (conflict).
+### Branches
+*   **main**: The production-ready branch. All code here is tested and stable.
+*   **feature/[name]**: Temporary branches for developing new features.
 
-### 🟢 1. Trưởng Nhóm (Bạn - Admin/Core)
-Chịu trách nhiệm về "Khung xương" và sự ổn định của Bot.
-- **Thiết kế kiến trúc system**: Quyết định cách các module nói chuyện với nhau.
-- **Core Engine**: Viết `engine.py`, `task_queue.py` (xử lý đa luồng).
-- **Database**: Thiết kế `models.py` và quản lý dữ liệu.
-- **Code Review**: Kiểm tra code của thành viên trước khi merge vào `dev`.
-- **DevOps**: Cấu hình Docker, Server để bot chạy 24/7.
+### Contribution Process
+1.  Create a new branch for your task: `git checkout -b feature/task-name`
+2.  Implement your changes locally.
+3.  Push the branch to the remote repository: `git push origin feature/task-name`
+4.  Create a Pull Request to merge your changes into `main`.
 
-### 🔵 2. Thành viên (Skill Developer)
-Chịu trách nhiệm về "Kỹ năng" và "Giao diện" của Bot.
-- **Phát triển Skills**: Viết các file trong thư mục `skills/` (VD: tool download video, tool tóm tắt, tool search).
-- **Telegram Interface**: Viết menu, các lệnh `/start`, `/help` để người dùng tương tác.
-- **Testing**: Test các chức năng mới tạo xem chạy ổn không.
+## Installation and Usage
 
----
+### Prerequisites
+*   Python 3.8 or higher
+*   pip (Python package installer)
 
-## Quy Trình Làm Việc (Git Workflow)
+### Setup
+1.  Install the required dependencies:
+    ```bash
+    pip install -r auto-bot/requirements.txt
+    ```
 
-Chúng ta tuân thủ quy trình **Git Flow** đơn giản nhưng nghiêm ngặt để đảm bảo code không bị lỗi.
+2.  Run the application:
+    ```bash
+    python auto-bot/main.py
+    ```
 
-### Nhánh (Branches)
-- `main`: Phiên bản ổn định nhất (Production). Không commit trực tiếp vào đây.
-- `dev`: Phiên bản đang phát triển (Development). Toàn bộ code mới sẽ hợp nhất tại đây.
-- `feature/...`: Nhánh tính năng riêng của từng người.
-
-### Các bước thực hiện (Step-by-step)
-
-Mỗi khi bắt đầu làm một tính năng mới (Ví dụ: Làm chức năng login), hãy làm theo đúng thứ tự sau:
-
-#### Bước 1: Đồng bộ code mới nhất
-```bash
-git checkout dev
-git pull origin dev
-```
-
-#### Bước 2: Tạo nhánh riêng để làm việc
-Đặt tên nhánh theo format: `feature/ten-tinh-nang`
-```bash
-git checkout -b feature/login
-```
-
-#### Bước 3: Code và Commit
-Làm việc xong thì lưu lại.
-```bash
-git add .
-git commit -m "Them chuc nang login cho bot"
-```
-
-#### Bước 4: Đẩy lên GitHub
-```bash
-git push origin feature/login
-```
-
-#### Bước 5: Tạo Pull Request (PR)
-- Lên trang GitHub của dự án.
-- Github sẽ hiện nút **"Compare & pull request"**.
-- Bấm vào, chọn merge từ `feature/login` vào `dev`.
-- **Trưởng nhóm** sẽ vào xem (Review), nếu ổn thì bấm **Merge**.
-
----
-
-## Lưu ý quan trọng
-1. **Tuyệt đối không push thẳng vào `main`**.
-2. **File `.env`**: Chứa mật khẩu/Token, tuyệt đối không commit lên Git (đã chặn trong `.gitignore`). Mỗi người tự tạo file `.env` trên máy mình.
-3. **Commit Message**: Viết rõ ràng (Ví dụ: "Fix lỗi không connect được database" thay vì "fix bug").
+## Contact
+For any inquiries regarding this project, please contact the development team.
