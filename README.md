@@ -1,38 +1,43 @@
-# CleanBot - Hệ thống Tự động hóa
+# CleanBot System
 
-Dự án Bot tự động hóa (Auto-Bot) phục vụ công việc Clean & Summarize.
+## Project Overview
+CleanBot is an automated system designed to handle cleaning and summarization tasks. It operates on a continuous loop, processing commands from a queue and executing them asynchronously. The system is designed for reliability and ease of maintenance.
 
-## 👥 Thành viên & Quy trình
-Dự án gồm 3 thành viên. Quy trình làm việc đơn giản hóa như sau:
+## Architecture
+The project follows a modular structure contained entirely within the `auto-bot/` directory:
 
-1.  **Nhánh Chính (`main`)**: Chỉ chứa code đã kiểm duyệt, chạy ổn định.
-2.  **Nhánh Tính năng (`feature/...`)**: Mỗi khi làm chức năng mới, hãy tạo nhánh này.
+*   **main.py**: The entry point of the application.
+*   **requirements.txt**: List of Python dependencies.
 
-### Cách đóng góp code (Workflow)
-1.  Từ nhánh `main`, tạo nhánh mới: `git checkout -b feature/tên-tính-năng`.
-2.  Code và Commit bình thường.
-3.  Đẩy lên GitHub: `git push origin feature/tên-tính-năng`.
-4.  Tạo **Pull Request** từ `feature/...` vào `main`.
-5.  Review và Merge.
+## Workflow and Collaboration
+This project utilizes a simplified Feature-Branch workflow to ensure code stability in the `main` branch.
 
-## 📂 Cấu trúc Dự án
-Tất cả code nằm trong thư mục `auto-bot/`.
+### Branches
+*   **main**: The production-ready branch. All code here is tested and stable.
+*   **feature/[name]**: Temporary branches for developing new features.
 
-```text
-CV/
-├── auto-bot/           # Source code chính
-│   ├── main.py         # File chạy chính
-│   ├── requirements.txt# Thư viện cần thiết
-│   └── ...
-└── README.md           # Hướng dẫn này
-```
+### Contribution Process
+1.  Create a new branch for your task: `git checkout -b feature/task-name`
+2.  Implement your changes locally.
+3.  Push the branch to the remote repository: `git push origin feature/task-name`
+4.  Create a Pull Request to merge your changes into `main`.
 
-## 🚀 Cài đặt & Chạy
-1.  Cài đặt thư viện:
+## Installation and Usage
+
+### Prerequisites
+*   Python 3.8 or higher
+*   pip (Python package installer)
+
+### Setup
+1.  Install the required dependencies:
     ```bash
     pip install -r auto-bot/requirements.txt
     ```
-2.  Chạy Bot:
+
+2.  Run the application:
     ```bash
     python auto-bot/main.py
     ```
+
+## Contact
+For any inquiries regarding this project, please contact the development team.
