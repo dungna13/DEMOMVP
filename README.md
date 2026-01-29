@@ -1,69 +1,99 @@
-# Auto-Bot Project
+# Auto-Bot Project (Cleanbot)
 
-This project implements a 24/7 autonomous agent architecture designed for multitasking and Telegram integration.
+Dự án phát triển Bot tự động hóa hoạt động 24/7, tích hợp Telegram để điều khiển và giám sát. Bot được thiết kế theo kiến trúc module, dễ dàng mở rộng và bảo trì.
 
-## Project Structure
+## Cấu trúc Dự án
 
 ```text
 auto-bot/
 ├── config/
-│   ├── settings.yaml       # Global configuration
-│   └── secrets.env         # Environment variables (Do not commit)
+│   ├── settings.yaml       # Cấu hình chung (Global config)
+│   └── secrets.env         # Biến môi trường (Token, API Key - KHÔNG COMMIT FILE NÀY)
 ├── core/
-│   ├── engine.py           # Main event loop
-│   ├── task_queue.py       # Priority queue
-│   ├── scheduler.py        # Job scheduler
-│   └── memory.py           # Context management
+│   ├── engine.py           # Bộ não trung tâm, vòng lặp xử lý chính
+│   ├── task_queue.py       # Hàng đợi ưu tiên (đa nhiệm)
+│   ├── scheduler.py        # Lập lịch chạy task (cron job)
+│   └── memory.py           # Quản lý ngữ cảnh (RAM & Database)
 ├── interfaces/
-│   └── telegram_bot.py     # Telegram interface
+│   └── telegram_bot.py     # Giao diện điều khiển qua Telegram
 ├── skills/
-│   ├── network_scanner.py
-│   ├── file_manager.py
-│   └── web_search.py
+│   ├── network_scanner.py  # Chức năng quét mạng
+│   ├── file_manager.py     # Quản lý file
+│   └── web_search.py       # Tìm kiếm thông tin
 ├── database/
-│   ├── models.py           # Data models
-│   └── storage.py          # Database connection
-├── logs/
-├── main.py                 # Entry point
-├── requirements.txt
-└── Dockerfile
+│   ├── models.py           # Định nghĩa cấu trúc dữ liệu (ORM)
+│   └── storage.py          # Kết nối CSDL
+├── main.py                 # File chạy chính
+├── requirements.txt        # Thư viện cần thiết
+└── Dockerfile              # Cấu hình để chạy 24/7
 ```
 
-## Development Workflow
+## Phân Chia Công Việc (Nhóm 2 Người)
 
-We follow a strict `dev` -> `feature` branching model to ensure stability.
+Để tối ưu hóa cho team 2 người, công việc được chia theo thế mạnh và chức năng để tránh va chạm code (conflict).
 
-### 1. Standard Workflow
-Every change must be made on a new branch created from `dev`.
+### 🟢 1. Trưởng Nhóm (Bạn - Admin/Core)
+Chịu trách nhiệm về "Khung xương" và sự ổn định của Bot.
+- **Thiết kế kiến trúc system**: Quyết định cách các module nói chuyện với nhau.
+- **Core Engine**: Viết `engine.py`, `task_queue.py` (xử lý đa luồng).
+- **Database**: Thiết kế `models.py` và quản lý dữ liệu.
+- **Code Review**: Kiểm tra code của thành viên trước khi merge vào `dev`.
+- **DevOps**: Cấu hình Docker, Server để bot chạy 24/7.
 
+### 🔵 2. Thành viên (Skill Developer)
+Chịu trách nhiệm về "Kỹ năng" và "Giao diện" của Bot.
+- **Phát triển Skills**: Viết các file trong thư mục `skills/` (VD: tool download video, tool tóm tắt, tool search).
+- **Telegram Interface**: Viết menu, các lệnh `/start`, `/help` để người dùng tương tác.
+- **Testing**: Test các chức năng mới tạo xem chạy ổn không.
+
+---
+
+## Quy Trình Làm Việc (Git Workflow)
+
+Chúng ta tuân thủ quy trình **Git Flow** đơn giản nhưng nghiêm ngặt để đảm bảo code không bị lỗi.
+
+### Nhánh (Branches)
+- `main`: Phiên bản ổn định nhất (Production). Không commit trực tiếp vào đây.
+- `dev`: Phiên bản đang phát triển (Development). Toàn bộ code mới sẽ hợp nhất tại đây.
+- `feature/...`: Nhánh tính năng riêng của từng người.
+
+### Các bước thực hiện (Step-by-step)
+
+Mỗi khi bắt đầu làm một tính năng mới (Ví dụ: Làm chức năng login), hãy làm theo đúng thứ tự sau:
+
+#### Bước 1: Đồng bộ code mới nhất
 ```bash
-# 1. Switch to dev and update
 git checkout dev
 git pull origin dev
+```
 
-# 2. Create a new feature branch
+#### Bước 2: Tạo nhánh riêng để làm việc
+Đặt tên nhánh theo format: `feature/ten-tinh-nang`
+```bash
 git checkout -b feature/login
+```
 
-# ... (Write code, test) ...
-
-# 3. Commit changes
+#### Bước 3: Code và Commit
+Làm việc xong thì lưu lại.
+```bash
 git add .
-git commit -m "Add login feature"
+git commit -m "Them chuc nang login cho bot"
+```
 
-# 4. Push to GitHub
+#### Bước 4: Đẩy lên GitHub
+```bash
 git push origin feature/login
 ```
 
-### 2. Best Practices
+#### Bước 5: Tạo Pull Request (PR)
+- Lên trang GitHub của dự án.
+- Github sẽ hiện nút **"Compare & pull request"**.
+- Bấm vào, chọn merge từ `feature/login` vào `dev`.
+- **Trưởng nhóm** sẽ vào xem (Review), nếu ổn thì bấm **Merge**.
 
-| Category | Guideline |
-| :--- | :--- |
-| **Commit Authorship** | Ensure correct attribution. If pairing, use `Co-authored-by` in commit messages. |
-| **Safety** | Always branch off `dev`. Never push directly to `main` or `dev` (configure Branch Protection). |
-| **Staging** | Create a Pull Request (PR) from `feature/...` to `dev` for review before merging. |
+---
 
-### 3. Branch Protection Setup
-To prevent errors, Repository Admins should enable **Branch Protection** rules for `main` and `dev`:
-- Require Pull Request reviews before merging.
-- Require status checks to pass.
-- Do not allow direct pushes.
+## Lưu ý quan trọng
+1. **Tuyệt đối không push thẳng vào `main`**.
+2. **File `.env`**: Chứa mật khẩu/Token, tuyệt đối không commit lên Git (đã chặn trong `.gitignore`). Mỗi người tự tạo file `.env` trên máy mình.
+3. **Commit Message**: Viết rõ ràng (Ví dụ: "Fix lỗi không connect được database" thay vì "fix bug").
