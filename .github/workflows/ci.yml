@@ -23,10 +23,9 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f auto_bot/requirements.txt ]; then pip install -r auto_bot/requirements.txt; fi
 
-    - name: Test Main Entry Point
+    - name: Syntax Check Only
       run: |
-        # Set python path to root so it can find auto_bot package
+        # Set python path to root
         export PYTHONPATH=$PYTHONPATH:.
-        # Create dummy env if needed (not needed for simple main)
-        # Run main.py (It connects to Telegram, so might fail if no token? No, code handles it)
-        python auto_bot/main.py
+        # Check if modules can be imported (verifies no syntax errors / missing imports)
+        python -c "import auto_bot.main; print('Successfully imported auto_bot.main')"

@@ -1,6 +1,13 @@
 import logging
 import asyncio
 import threading
+from dotenv import load_dotenv
+
+import os
+# Load secrets from .env
+load_dotenv(override=True)
+import os
+
 from auto_bot.engine import engine
 from auto_bot.telegram_bot import run_bot
 
