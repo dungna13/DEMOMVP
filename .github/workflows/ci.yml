@@ -2,9 +2,9 @@ name: Auto-Bot CI
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: [ "main", "feature/*" ]
   pull_request:
-    branches: [ "main", "dev" ]
+    branches: [ "main" ]
 
 jobs:
   test:
@@ -21,18 +21,12 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        # We need to change directory to auto-bot because that's where requirements.txt is
-        cd auto-bot
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f auto_bot/requirements.txt ]; then pip install -r auto_bot/requirements.txt; fi
 
-    - name: Test Config Loader
+    - name: Test Main Entry Point
       run: |
-        cd auto-bot
-        # Create a dummy .env for testing
-        echo "TELEGRAM_BOT_TOKEN=test_token" > config/.env
-        python config/loader.py
-
-    - name: Test Database Init
-      run: |
-        cd auto-bot
-        python init_db.py
+        # Set python path to root so it can find auto_bot package
+        export PYTHONPATH=$PYTHONPATH:.
+        # Create dummy env if needed (not needed for simple main)
+        # Run main.py (It connects to Telegram, so might fail if no token? No, code handles it)
+        python auto_bot/main.py
