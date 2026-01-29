@@ -2,3 +2,4 @@ python-telegram-bot[job-queue]
 python-dotenv
 pyyaml
 sqlalchemy
+pytz
