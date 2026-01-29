@@ -1,0 +1,38 @@
+name: Auto-Bot CI
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # We need to change directory to auto-bot because that's where requirements.txt is
+        cd auto-bot
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Test Config Loader
+      run: |
+        cd auto-bot
+        # Create a dummy .env for testing
+        echo "TELEGRAM_BOT_TOKEN=test_token" > config/.env
+        python config/loader.py
+
+    - name: Test Database Init
+      run: |
+        cd auto-bot
+        python init_db.py
