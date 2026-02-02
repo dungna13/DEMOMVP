@@ -25,10 +25,25 @@ The system is built on a robust, scalable stack designed for high performance an
 
 | Component | Technology | Role |
 | :--- | :--- | :--- |
-| **Backend API** | **Python (FastAPI)** | High-performance asynchronous API & Business Logic |
-| **Frontend UI** | **React.js (Vite)** | Responsive Interactive Dashboard & Game Interfaces |
-| **AI Engine** | **Google Gemini** | Content Generation, Diagnosis, and Adaptive Scoring |
-| **Database** | **SQLite / PostgreSQL** | Relational Data Management (Users, Learning Paths) |
+| **Backend API** | **Python (FastAPI)** | Async API, CORS enabled, Modular Router |
+| **AI Engine** | **Gemini 1.5 Flash** | **Context Injection RAG** (No Embeddings), High Speed |
+| **Frontend UI** | **React + Vite** | Modern Dark Mode Interface, Markdown Rendering |
+| **Knowledge Base** | **Excel + Pandas** | Dynamic Filtering by Grade/Lesson |
+
+### Key Features (Implemented)
+1.  **Context Injection Strategy**:
+    -   Instead of traditional Vector Search (which hits Quota limits), we leverage the massive Context Window of Gemini 1.5 Flash.
+    -   Entire Excel Knowledge Base is injected directly into the Prompt.
+    -   *Result*: Zero Quota errors, higher accuracy for small/medium datasets.
+
+2.  **Accumulated Knowledge Logic ("Học cuốn chiếu")**:
+    -   **Rule**: `Knowledge = (All Grades < Current) + (Current Grade <= Current Lesson)`.
+    -   *Example*: A Grade 9 student asking about Grade 6 will get an answer. A Grade 6 student asking about Grade 9 will be blocked.
+
+3.  **Dynamic Teacher Persona**:
+    -   **Math**: Socratic method (Step-by-step guidance).
+    -   **History**: Storytelling mode.
+    -   **Literature**: Emotional & stylistic analysis.
 
 ### System Flow (Pipeline)
 ```mermaid
