@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocMind | Document Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/glass.css">
+    <link rel="stylesheet" href="css/components/topbar.css">
+    <link rel="stylesheet" href="css/components/source-card.css">
+    <link rel="stylesheet" href="css/components/uploader.css">
+    <link rel="stylesheet" href="css/components/viewer.css">
+    <link rel="stylesheet" href="css/components/chat.css">
+    <link rel="stylesheet" href="css/components/citation.css">
+    <link rel="stylesheet" href="css/components/animations.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="top-bar">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--clr-accent-blue)" stroke-width="2.5" style="margin-right: 8px;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span style="font-weight: 500; font-size: 22px; letter-spacing: -0.5px; color: var(--clr-text-primary); font-family: 'Google Sans', sans-serif;">DocMind</span>
+            </div>
+            <div class="user-actions">
+                <!-- Session management or user profile can go here -->
+            </div>
+        </header>
+
+        <!-- Pane 1: Source Manager -->
+        <aside class="pane" id="pane-sources">
+            <div class="pane-header">
+                <h2 style="font-size: 14px; font-weight: 600; color: var(--clr-text-secondary);">Sources</h2>
+                <button id="btn-upload-trigger" class="glass-pill" style="cursor: pointer; border-color: var(--clr-accent-blue); color: var(--clr-accent-blue);">+ Add</button>
+            </div>
+            <div class="pane-content" id="source-list-container">
+                <!-- Source cards will be injected here -->
+                <div class="empty-state" id="sources-empty-state">
+                    <p style="text-align: center; color: var(--clr-text-muted); font-size: 13px; margin-top: var(--sp-2xl);">No sources added yet.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Pane 2: Source Guide & Viewer -->
+        <main class="pane" id="pane-viewer">
+            <div class="pane-header">
+                <nav class="viewer-tabs">
+                    <button class="tab-item active" data-tab="summary">Summary</button>
+                    <button class="tab-item" data-tab="reader">Document</button>
+                </nav>
+            </div>
+            <div class="pane-content" id="viewer-content">
+                <!-- Summary or Document Reader will be injected here -->
+                <div id="summary-container" class="active">
+                    <div class="notebook-summary">
+                        <h1 id="summary-title" style="font-size: 24px; margin-bottom: var(--sp-md);">Source Guide</h1>
+                        <div id="summary-text" class="markdown-content">
+                            <!-- AI summary text streams here -->
+                        </div>
+                    </div>
+                    <div class="suggested-questions">
+                        <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--clr-text-muted); margin-bottom: var(--sp-md);">Suggested Questions</h3>
+                        <div id="questions-grid" class="questions-grid">
+                            <!-- Question chips injected here -->
+                        </div>
+                    </div>
+                </div>
+                <div id="reader-container" style="display: none;">
+                    <!-- Document reader content -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Pane 3: Grounded Chat -->
+        <section class="pane" id="pane-chat">
+            <div class="pane-header">
+                <h2 style="font-size: 14px; font-weight: 600; color: var(--clr-text-secondary);">Chat</h2>
+            </div>
+            <div class="pane-content" id="chat-history">
+                <!-- Chat messages injected here -->
+                <div class="empty-state" id="chat-empty-state">
+                    <p style="text-align: center; color: var(--clr-text-muted); font-size: 13px; margin-top: var(--sp-2xl);">Ask a question about your sources.</p>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper glass">
+                    <textarea id="chat-input" placeholder="Ask DocMind..." rows="1"></textarea>
+                    <button id="btn-send-chat" class="btn-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modals -->
+    <div id="upload-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3>Upload Sources</h3>
+                <button class="btn-close">&times;</button>
+            </div>
+            <div class="modal-tabs">
+                <button class="modal-tab active" data-tab="file">File Upload</button>
+                <button class="modal-tab" data-tab="url">Paste URL</button>
+            </div>
+            
+            <div id="modal-tab-file" class="modal-tab-content active">
+                <div class="uploader-zone" id="drop-zone">
+                    <div class="uploader-content">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--clr-accent-blue)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        <p>Drag & drop files or <span>browse</span></p>
+                        <input type="file" id="file-input" multiple hidden>
+                    </div>
+                </div>
+            </div>
+
+            <div id="modal-tab-url" class="modal-tab-content">
+                <div class="url-ingest-zone">
+                    <p style="color: var(--clr-text-secondary); font-size: 14px; margin-bottom: var(--sp-md);">Paste a direct link to a PDF or text document.</p>
+                    <div class="glass-input-wrapper">
+                        <input type="url" id="url-input" class="glass-input" placeholder="https://example.com/document.pdf" style="width: 100%;">
+                    </div>
+                    <button id="btn-import-url" class="glass-pill" style="margin-top: var(--sp-lg); width: 100%; height: 44px; font-weight: 500;">Import from URL</button>
+                    <p id="url-status" style="margin-top: var(--sp-md); font-size: 12px; text-align: center; color: var(--clr-accent-blue); display: none;">Downloading and processing...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

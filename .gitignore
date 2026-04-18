@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Data & Storage
+data/
+docmind/backend/data/
+docmind/backend/venv/
+
+# Frontend
+node_modules/
+.DS_Store
+
+# Logs
+*.log

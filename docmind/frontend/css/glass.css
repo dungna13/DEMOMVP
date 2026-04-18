@@ -1,0 +1,54 @@
+.glass {
+  background: var(--clr-bg-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.glass-card {
+  background: var(--clr-bg-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-md);
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.glass-card:hover {
+  border-color: var(--clr-accent-blue);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.glass-pill {
+  background: var(--clr-bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  padding: var(--sp-xs) var(--sp-md);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--clr-text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.glass-pill:hover {
+  background: #ffffff;
+  border-color: var(--clr-accent-blue);
+  color: var(--clr-accent-blue);
+}
+
+.glass-input {
+  background: var(--clr-bg-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-md);
+  color: var(--clr-text-primary);
+  transition: var(--transition);
+  outline: none;
+}
+
+.glass-input:focus {
+  border-color: var(--clr-accent-blue);
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+}

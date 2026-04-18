@@ -1,0 +1,39 @@
+:root {
+  /* -- Background Layers -- */
+  --clr-bg-base:       #f8f9fa;   /* Google Light Gray - Page root */
+  --clr-bg-surface:    #ffffff;   /* Pure White - Panels */
+  --clr-bg-elevated:   #f1f3f4;   /* Light gray for sub-elements/inputs */
+
+  /* -- Accent Colors (Google Palette) -- */
+  --clr-accent-blue:   #1a73e8;
+  --clr-accent-indigo: #4285f4;
+  --clr-accent-cyan:   #00acc1;
+
+  /* -- Typography -- */
+  --clr-text-primary:  #202124;   /* Dark charcoal */
+  --clr-text-secondary:#5f6368;   /* Medium gray */
+  --clr-text-muted:    #80868b;   /* Light gray text */
+
+  /* -- Surface Effect -- */
+  --glass-bg:          rgba(255,255,255,0.7);
+  --glass-bg-hover:    rgba(255,255,255,0.9);
+  --glass-border:      #dadce0;   /* Light gray border */
+  --glass-blur:        blur(8px);
+
+  /* -- Elevation / Shadows -- */
+  --shadow-sm:   0 1px 2px 0 rgba(60,64,67,0.301), 0 1px 3px 1px rgba(60,64,67,0.149);
+  --shadow-md:   0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  --shadow-lg:   0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+
+  /* -- Spacing Scale -- */
+  --sp-xs: 4px;  --sp-sm: 8px;  --sp-md: 16px;
+  --sp-lg: 24px; --sp-xl: 32px; --sp-2xl: 48px;
+
+  /* -- Radius -- */
+  --r-sm: 8px;   --r-md: 12px;
+  --r-lg: 16px;  --r-xl: 24px;
+
+  /* -- Transitions -- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.2s var(--ease);
+}

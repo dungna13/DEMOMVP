@@ -1,0 +1,65 @@
+.app-shell {
+  display: grid;
+  grid-template-columns: 320px 1fr 400px;
+  grid-template-rows: 64px 1fr;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--clr-bg-base);
+  color: var(--clr-text-primary);
+  font-family: 'Google Sans', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.top-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--sp-lg);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--clr-bg-surface);
+  z-index: 50;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--clr-bg-surface);
+  margin: var(--sp-sm);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--glass-border);
+}
+
+.pane-header {
+  padding: var(--sp-md) var(--sp-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(0,0,0,0.02);
+}
+
+.pane-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-lg);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--clr-text-muted);
+}
