@@ -2,7 +2,7 @@ import os
 import json
 import httpx
 import base64
-import ulid
+import uuid
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from typing import List, Dict
 from models.source import Source, SourceCreate, SourceUpdate, URLSourceCreate, SourceMeta
@@ -107,8 +107,7 @@ async def get_sources():
 
 @router.post("", response_model=Source)
 async def create_source(req: SourceCreate):
-    # Generate a unique ID using available ULID library methods
-    source_id = str(getattr(ulid, 'new', lambda: ulid.ULID())())
+    source_id = str(uuid.uuid4())
     local_path = None
     
     try:
@@ -152,8 +151,7 @@ async def create_source(req: SourceCreate):
 
 @router.post("/url", response_model=Source)
 async def create_source_from_url(req: URLSourceCreate):
-    # Generate a unique ID using available ULID library methods
-    source_id = str(getattr(ulid, 'new', lambda: ulid.ULID())())
+    source_id = str(uuid.uuid4())
     print(f"[URL Import] Starting import for {req.url}")
     
     try:
