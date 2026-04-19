@@ -107,7 +107,8 @@ async def get_sources():
 
 @router.post("", response_model=Source)
 async def create_source(req: SourceCreate):
-    source_id = str(ulid.ULID())
+    # Generate a unique ID using available ULID library methods
+    source_id = str(getattr(ulid, 'new', lambda: ulid.ULID())())
     local_path = None
     
     try:
@@ -151,7 +152,8 @@ async def create_source(req: SourceCreate):
 
 @router.post("/url", response_model=Source)
 async def create_source_from_url(req: URLSourceCreate):
-    source_id = str(ulid.ULID())
+    # Generate a unique ID using available ULID library methods
+    source_id = str(getattr(ulid, 'new', lambda: ulid.ULID())())
     print(f"[URL Import] Starting import for {req.url}")
     
     try:
