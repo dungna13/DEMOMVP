@@ -2,7 +2,10 @@
  * API Client - Fetch + SSE abstraction layer
  */
 
-const BASE_URL = 'http://localhost:8000';
+// Auto-detect: if running on localhost use localhost, otherwise use the server's IP/hostname
+const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8000'
+  : `http://${window.location.hostname}:8000`;
 
 export const api = {
   async get(path) {
