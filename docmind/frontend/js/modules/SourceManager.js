@@ -18,6 +18,13 @@ export class SourceManager {
     this.btnImportUrl = $('#btn-import-url');
     this.urlStatus = $('#url-status');
 
+    // UI elements for Crawl
+    this.crawlUrlInput = $('#crawl-url-input');
+    this.crawlMaxDocs = $('#crawl-max-docs');
+    this.btnCrawl = $('#btn-crawl');
+    this.crawlStatus = $('#crawl-status');
+    this.crawlResults = $('#crawl-results');
+
     this.sources = [];
     this.init();
   }
@@ -42,6 +49,9 @@ export class SourceManager {
     // Import from URL
     this.btnImportUrl.onclick = () => this.handleUrlImport();
 
+    // Crawl documents
+    this.btnCrawl.onclick = () => this.handleCrawl();
+
     // Upload logic
     this.dropZone.onclick = () => this.fileInput.click();
     this.dropZone.ondragover = (e) => {
@@ -62,6 +72,8 @@ export class SourceManager {
     this.switchTab('file');
     this.urlInput.value = '';
     this.urlStatus.style.display = 'none';
+    this.crawlStatus.style.display = 'none';
+    this.crawlResults.innerHTML = '';
   }
 
   hideModal() { this.modal.style.display = 'none'; }
@@ -90,6 +102,43 @@ export class SourceManager {
       this.urlStatus.style.color = '#d93025';
     } finally {
       this.btnImportUrl.disabled = false;
+    }
+  }
+
+  async handleCrawl() {
+    const url = this.crawlUrlInput.value.trim();
+    if (!url) return;
+
+    const maxDocs = parseInt(this.crawlMaxDocs.value);
+    this.crawlStatus.textContent = `🕷️ Đang quét và xử lý tối đa ${maxDocs} tài liệu... Vui lòng đợi.`;
+    this.crawlStatus.style.display = 'block';
+    this.crawlStatus.style.color = 'var(--clr-accent-blue)';
+    this.crawlResults.innerHTML = '';
+    this.btnCrawl.disabled = true;
+
+    try {
+      const data = await api.post('/sources/crawl', { url, max_documents: maxDocs });
+      
+      this.crawlStatus.textContent = data.message || 'Hoàn tất!';
+      this.crawlStatus.style.color = data.success ? '#34a853' : '#d93025';
+
+      if (data.results && data.results.length > 0) {
+        this.crawlResults.innerHTML = data.results.map(r => {
+          const icon = r.status === 'success' ? '✅' : r.status === 'skipped' ? '⏭️' : '❌';
+          const detail = r.status === 'success' ? `${r.chunks} chunks` : (r.reason || '');
+          return `<div style="padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            ${icon} <strong>${r.document_number}</strong> — ${detail}
+          </div>`;
+        }).join('');
+      }
+
+      await this.fetchSources();
+      EventBus.emit('sources:updated', this.sources);
+    } catch (err) {
+      this.crawlStatus.textContent = 'Error: ' + err.message;
+      this.crawlStatus.style.color = '#d93025';
+    } finally {
+      this.btnCrawl.disabled = false;
     }
   }
 
