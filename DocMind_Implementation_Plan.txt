@@ -1,664 +1,0 @@
-DocMind
-Document Intelligence Platform
-
-Implementation Plan - Full Architecture & Design Specification
-
-Inspired by Google NotebookLM  ·  Glassmorphism UI  ·  AI-Powered with Gemini 3.1 Flash Lite
-AttributeStackSpecificationFrontendHTML5 / Vanilla JS / CSSTriple-Pane Glassmorphism, Dark Mode, Deep Blue paletteBackendPython FastAPIREST + SSE streaming, async, Pydantic modelsAI EngineGoogle Gemini 3.1 Flash LiteGrounded generation, citation metadata, streamingArchitectureSource-CentricMulti-source context, BM25 retrieval, JSON data storeDesign StyleGlassmorphismBlur + transparency, deep gradients, premium minimal
-
-
-1. Project Overview & Context
-DocMind is a Source-Centric Document Intelligence application that allows users to load multiple documents, activate or deactivate them as AI context, and engage in a grounded conversation with an AI that cites its sources inline. The experience is inspired 100% by Google NotebookLM, elevated with a premium Glassmorphism aesthetic.
-
-1.1 Core Design Philosophy
-• Futuristic & Premium - the interface must feel like a next-generation research tool.
-• Source-Grounded - every AI answer traces back to an activated source. No hallucination.
-• Citations as First-Class Citizens - [1][2] labels are interactive, not decorative.
-• Streaming-First - responses stream token-by-token, not wait-then-render.
-• Glassmorphism Aesthetic - dark mode, blur, depth, soft glow on interactive elements.
-
-1.2 Triple-Pane Architecture
-The UI is divided into three permanent panes, mirroring NotebookLM's layout philosophy:
-
-PaneNameResponsibilityLeft (280px)Source ManagerUpload, list, toggle, and delete sources. Tag display. Drag-to-reorder.Middle (flex)Source Guide & ViewerAI-generated notebook summary, suggested questions, full document reader with highlight sync.Right (380px)Grounded ChatConversational AI restricted to activated sources. Citation labels [1][2] with hover popups. SSE streaming.
-
-
-2. Project Structure Analysis
-Before any code is written, every file in the project must have a single, well-defined responsibility. The structure below enforces separation of concerns across frontend modules, backend services, and data layer.
-
-2.1 Full Directory Tree
-docmind/
-+-- backend/
-¦   +-- main.py                    # FastAPI app entry, CORS, router mount
-¦   +-- routers/
-¦   ¦   +-- sources.py             # POST /sources, GET /sources, PATCH, DELETE
-¦   ¦   +-- chat.py                # POST /chat (SSE streaming endpoint)
-¦   ¦   +-- summary.py             # GET /summary, GET /suggested-questions
-¦   +-- services/
-¦   ¦   +-- ingestor.py            # PDF (PyMuPDF) / URL (httpx+BS4) / text parser
-¦   ¦   +-- chunker.py             # Sentence-aware sliding window chunker
-¦   ¦   +-- retriever.py           # BM25 / TF-IDF keyword retrieval
-¦   ¦   +-- prompt_builder.py      # Context assembly + citation metadata
-¦   ¦   +-- gemini_client.py       # google-generativeai wrapper + SSE
-¦   +-- models/
-¦   ¦   +-- source.py              # Source Pydantic model
-¦   ¦   +-- chunk.py               # Chunk Pydantic model
-¦   ¦   +-- chat.py                # ChatRequest / ChatResponse models
-¦   +-- data/
-¦   ¦   +-- sources.json           # Source registry (master index)
-¦   ¦   +-- chunks/                # {source_id}.json - chunk arrays per source
-¦   ¦   +-- sessions/              # {session_id}.json - chat history per session
-¦   +-- requirements.txt
-¦
-+-- frontend/
-¦   +-- index.html                 # Single-page app shell
-¦   +-- css/
-¦   ¦   +-- reset.css
-¦   ¦   +-- tokens.css             # All CSS custom properties
-¦   ¦   +-- layout.css             # Triple-pane grid system
-¦   ¦   +-- glass.css              # Glassmorphism utility classes
-¦   ¦   +-- components/
-¦   ¦       +-- topbar.css
-¦   ¦       +-- source-card.css
-¦   ¦       +-- uploader.css
-¦   ¦       +-- viewer.css
-¦   ¦       +-- chat.css
-¦   ¦       +-- citation.css
-¦   ¦       +-- animations.css
-¦   +-- js/
-¦       +-- app.js                 # Root init, global state store
-¦       +-- api.js                 # Fetch + SSE abstraction layer
-¦       +-- modules/
-¦       ¦   +-- SourceManager.js   # Pane 1 - all source logic
-¦       ¦   +-- SourceViewer.js    # Pane 2 - summary & document reader
-¦       ¦   +-- ChatEngine.js      # Pane 3 - chat UI + streaming
-¦       ¦   +-- CitationEngine.js  # [1][2] parsing, tooltip rendering
-¦       ¦   +-- StreamRenderer.js  # Token-by-token markdown stream
-¦       +-- utils/
-¦           +-- dom.js             # $ / $$ / createElement helpers
-¦           +-- markdown.js        # Lightweight MD ? HTML renderer
-
-
-
-3. Implementation Phases
-
-PHASE 01
-Foundation - Design System & Layout Shell
-? Duration: 3-4 days   ·   Zero logic, 100% visual skeleton
-Phase 1 Objectives
-• Establish the complete CSS design token system (colors, blur, spacing, radius).
-• Render the triple-pane grid at correct proportions on all screen sizes.
-• Build the glassmorphism utility classes (.glass, .glass-card, .glass-input).
-• Implement the animated deep-blue gradient background with radial depth layers.
-• No JavaScript logic yet - purely structural HTML + CSS.
-
-3.1.1 Design Tokens (tokens.css)
-All visual constants live in a single CSS file. Never hardcode colors or spacing in component files.
-
-:root {
-  /* -- Background Layers -- */
-  --clr-bg-base:       #0a0e1a;   /* Deep space - page root */
-  --clr-bg-surface:    #0f1629;   /* Panel backgrounds */
-  --clr-bg-elevated:   #141d35;   /* Cards, inputs, modals */
-
-  /* -- Accent Colors -- */
-  --clr-accent-blue:   #3b82f6;
-  --clr-accent-indigo: #6366f1;
-  --clr-accent-cyan:   #22d3ee;
-
-  /* -- Typography -- */
-  --clr-text-primary:  #e8eaf6;
-  --clr-text-secondary:#94a3b8;
-  --clr-text-muted:    #4a5568;
-
-  /* -- Glass Effect -- */
-  --glass-bg:          rgba(255,255,255,0.04);
-  --glass-bg-hover:    rgba(255,255,255,0.07);
-  --glass-border:      rgba(255,255,255,0.08);
-  --glass-blur:        blur(20px) saturate(1.4);
-
-  /* -- Glow Accents -- */
-  --glow-blue:   0 0 24px rgba(59,130,246,0.18);
-  --glow-indigo: 0 0 24px rgba(99,102,241,0.18);
-  --glow-cyan:   0 0 20px rgba(34,211,238,0.14);
-
-  /* -- Spacing Scale -- */
-  --sp-xs: 4px;  --sp-sm: 8px;  --sp-md: 16px;
-  --sp-lg: 24px; --sp-xl: 32px; --sp-2xl: 48px;
-
-  /* -- Radius -- */
-  --r-sm: 6px;   --r-md: 10px;
-  --r-lg: 14px;  --r-xl: 20px;
-
-  /* -- Transitions -- */
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --transition: all 0.2s var(--ease);
-}
-
-3.1.2 Triple-Pane Grid (layout.css)
-.app-shell {
-  display: grid;
-  grid-template-columns: 280px 1fr 380px;
-  grid-template-rows: 56px 1fr;
-  height: 100dvh;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse 80% 50% at 20% -10%,
-      rgba(99,102,241,.12) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 110%,
-      rgba(34,211,238,.08) 0%, transparent 60%),
-    var(--clr-bg-base);
-}
-
-3.1.3 Glass Utility Classes (glass.css)
-.glass {
-  background:    var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--r-lg);
-}
-.glass-card {
-  composes: glass;
-  padding: var(--sp-md);
-  transition: var(--transition);
-}
-.glass-card:hover {
-  background: var(--glass-bg-hover);
-  border-color: rgba(255,255,255,0.14);
-  box-shadow: var(--glow-blue);
-}
-
-
-
-PHASE 02
-Pane 1 - Source Manager
-? Duration: 4-5 days   ·   Upload, list, toggle, manage sources
-Phase 2 Objectives
-• Build SourceCard component with glass styling, type badge, toggle checkbox.
-• Implement drag-to-reorder via HTML5 Drag & Drop API.
-• File uploader with drag-drop zone + click-to-browse, progress indicator.
-• Connect to FastAPI /sources endpoints (CRUD).
-• State management: global sources array in app.js, reactive re-render.
-
-3.2.1 SourceCard Component (SourceManager.js)
-Each source renders as a glass card with the following anatomy:
-
-ElementDescription.source-cardGlass card container. Active sources have a left border glow (--clr-accent-blue)..source-toggleCustom checkbox - glowing blue dot when active, dim gray when inactive..source-iconSVG icon based on type: PDF (red), URL (blue), Text (teal). 24×24px..source-nameTruncated filename. 13px. var(--clr-text-primary)..source-metaChunk count + word count. 11px. var(--clr-text-muted)..source-badgePill badge: "PDF" / "URL" / "TXT". Glass background, accent border..source-actionsHidden on idle, shown on hover: Delete button (red on hover).
-3.2.2 SourceToggle Logic
-// In SourceManager.js
-toggleSource(sourceId) {
-  const source = state.sources.find(s => s.id === sourceId);
-  source.active = !source.active;
-  await api.patch(`/sources/${sourceId}`, { active: source.active });
-  this.render();
-  EventBus.emit("sources:changed", state.sources.filter(s => s.active));
-}
-
-3.2.3 Upload Flow
-1. User drops file or clicks upload zone ? FileReader API reads content.
-2. POST /sources with { name, type, content } - backend returns { id, chunk_count }.
-3. Source appended to state.sources[], SourceManager re-renders.
-4. EventBus emits "sources:added" ? Pane 2 triggers summary regeneration.
-
-
-
-PHASE 03
-Pane 2 - Source Guide & Viewer
-? Duration: 4-5 days   ·   Summary, suggestions, document reader
-Phase 3 Objectives
-• Notebook Summary panel - AI-generated overview of all active sources, auto-refreshes on toggle.
-• Suggested Questions - 4-6 clickable chips that auto-fill the chat input.
-• Document Reader - paginated/scrollable raw text viewer with passage highlight sync.
-• When ChatEngine emits a citation click ? Viewer scrolls to + highlights the cited passage.
-
-3.3.1 NotebookSummary Sub-component
-On initial load and on every "sources:changed" event:
-5. POST /summary with { source_ids: activeIds }.
-6. Gemini returns 3-4 paragraph markdown summary.
-7. StreamRenderer renders it progressively (SSE).
-8. Fade-in animation via CSS @keyframes fadeSlideUp.
-
-3.3.2 SuggestedQuestions Sub-component
-Six question chips rendered as glass pill buttons. Clicking a chip:
-chip.addEventListener("click", () => {
-  chatEngine.setInput(chip.textContent);
-  chatEngine.focusInput();
-});
-
-3.3.3 DocumentReader Sub-component
-Renders the full text of the selected source. Receives highlight events from CitationEngine:
-EventBus.on("citation:highlight", ({ sourceId, chunkIndex }) => {
-  const target = document.querySelector(
-    `[data-source="${sourceId}"][data-chunk="${chunkIndex}"]`
-  );
-  target.scrollIntoView({ behavior: "smooth", block: "center" });
-  target.classList.add("chunk--highlighted");
-  setTimeout(() => target.classList.remove("chunk--highlighted"), 3000);
-});
-
-
-
-PHASE 04
-Pane 3 - Grounded Chat + Citation Engine
-? Duration: 6-7 days   ·   The core AI experience
-Phase 4 Objectives
-• ChatEngine: input bar, message history, SSE streaming renderer.
-• CitationEngine: parse [1][2] from AI response, render as interactive badges.
-• Citation tooltip/popup: shows source name + verbatim passage excerpt on hover.
-• Citation click: emits highlight event to DocumentReader in Pane 2.
-• "Sources context" indicator in chat header showing active source count.
-
-3.4.1 ChatEngine Architecture (ChatEngine.js)
-MethodResponsibilitysendMessage(text)Validates active sources exist, calls api.streamChat(), renders response.appendMessage(role, content)Inserts glass message bubble into chat history.handleStream(stream)Receives SSE tokens, passes to StreamRenderer, then CitationEngine.clearHistory()Resets chat to empty state, emits "chat:cleared".setInput(text)Programmatically fills input (used by SuggestedQuestions).
-3.4.2 Citation Engine - Core Logic (CitationEngine.js)
-After the full AI response is received, CitationEngine post-processes the rendered HTML:
-
-parseAndRender(htmlContent, citations) {
-  // citations = [{ id:1, source_id:"abc", chunk_index:3, text:"..." }]
-  return htmlContent.replace(/\[(\d+)\]/g, (match, num) => {
-    const citation = citations[parseInt(num) - 1];
-    if (!citation) return match;
-    return `<span
-      class="citation-badge"
-      data-source-id="${citation.source_id}"
-      data-chunk-index="${citation.chunk_index}"
-      data-excerpt="${escapeHTML(citation.text.slice(0,200))}"
-    >[${num}]</span>`;
-  });
-}
-
-3.4.3 Citation Tooltip (citation.css)
-.citation-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 7px;
-  margin: 0 2px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  background: rgba(59,130,246,0.15);
-  border: 1px solid rgba(59,130,246,0.35);
-  color: #93c5fd;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  position: relative;
-}
-.citation-badge:hover {
-  background: rgba(59,130,246,0.28);
-  box-shadow: 0 0 12px rgba(59,130,246,0.3);
-}
-.citation-tooltip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 280px;
-  padding: 12px 14px;
-  background: var(--clr-bg-elevated);
-  backdrop-filter: blur(24px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--r-md);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4), var(--glow-blue);
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--clr-text-secondary);
-  z-index: 100;
-}
-
-
-
-PHASE 05
-Backend - FastAPI + Source Engine
-? Duration: 5-6 days   ·   Ingestion, chunking, retrieval
-Phase 5 Objectives
-• FastAPI app with CORS, async routes, Pydantic validation.
-• Ingestor: parse PDF (PyMuPDF), URLs (httpx + BeautifulSoup4), plain text.
-• Chunker: sentence-aware sliding window, target 400 tokens, 50-token overlap.
-• Retriever: BM25 keyword search across active source chunks.
-• Data persistence: JSON-based file store (sources.json + chunks/{id}.json).
-
-3.5.1 Source Ingestion Pipeline
-StepDetail1. Receive uploadPOST /sources receives { name, type, content_b64 | url | text }2. Ingestoringestor.py extracts clean plaintext from PDF/URL/text input3. Chunkerchunker.py splits into 400-token sentence-bounded chunks with metadata4. PersistSource record saved to sources.json, chunks to chunks/{id}.json5. ReturnResponse: { id, name, type, chunk_count, word_count, created_at }
-3.5.2 Chunker Design (chunker.py)
-def chunk_text(text: str, source_id: str) -> list[Chunk]:
-    sentences = sent_tokenize(text)  # NLTK
-    chunks = []
-    buffer, buf_tokens = [], 0
-    chunk_index = 0
-
-    for sentence in sentences:
-        tokens = len(sentence.split())
-        if buf_tokens + tokens > TARGET_TOKENS and buffer:
-            chunks.append(Chunk(
-                id=f"{source_id}_{chunk_index}",
-                source_id=source_id,
-                index=chunk_index,
-                text=" ".join(buffer),
-                token_count=buf_tokens
-            ))
-            chunk_index += 1
-            # Keep last N sentences as overlap
-            buffer = buffer[-OVERLAP_SENTENCES:]
-            buf_tokens = sum(len(s.split()) for s in buffer)
-        buffer.append(sentence)
-        buf_tokens += tokens
-
-    if buffer:  # flush remainder
-        chunks.append(Chunk(...))
-    return chunks
-
-
-
-PHASE 06
-AI Engine - Prompt Engineering & Citation Metadata
-? Duration: 4-5 days   ·   The intelligence layer
-Phase 6 Objectives
-• Design the grounded system prompt that forces Gemini to stay within source context.
-• Implement citation metadata injection: number sources, embed references.
-• Build structured JSON response protocol so citations are machine-parseable.
-• Wire SSE streaming from Gemini through FastAPI to the frontend.
-
-3.6.1 Retriever (retriever.py)
-Before every chat turn, retrieve the top-K most relevant chunks from active sources using BM25 scoring:
-
-from rank_bm25 import BM25Okapi
-
-def retrieve_top_chunks(query: str, source_ids: list[str], top_k=8) -> list[Chunk]:
-    all_chunks = load_chunks_for_sources(source_ids)
-    tokenized = [c.text.lower().split() for c in all_chunks]
-    bm25 = BM25Okapi(tokenized)
-    scores = bm25.get_scores(query.lower().split())
-    top_indices = sorted(range(len(scores)),
-                         key=lambda i: scores[i], reverse=True)[:top_k]
-    return [all_chunks[i] for i in top_indices]
-
-3.6.2 Prompt Architecture (prompt_builder.py)
-The system prompt enforces two rules: answer only from sources, and always cite inline.
-
-SYSTEM_PROMPT = """
-You are DocMind, an expert research assistant.
-You have access to the following source passages,
-each identified by a citation number [N].
-
-STRICT RULES:
-1. Answer ONLY using information from the provided passages.
-2. Every factual claim MUST include an inline citation: [1], [2], etc.
-3. If the answer is not in the sources, say:
-   "This information is not available in the selected sources."
-4. Do NOT invent, extrapolate, or add external knowledge.
-5. After your prose answer, output a JSON block:
-
-```citations
-[
-  { "id": 1, "source_id": "...", "chunk_index": 3,
-    "text": "...verbatim passage excerpt (max 300 chars)..." },
-  ...
-]
-```
-
-SOURCE PASSAGES:
-{context_block}
-"""
-
-3.6.3 Context Block Format
-Each chunk is numbered and labeled for Gemini to reference:
-
-def build_context_block(chunks: list[Chunk]) -> str:
-    lines = []
-    for i, chunk in enumerate(chunks, 1):
-        source = get_source(chunk.source_id)
-        lines.append(
-            f"[{i}] SOURCE: {source.name} (chunk {chunk.index})\n"
-            f"---\n{chunk.text}\n"
-        )
-    return "\n".join(lines)
-
-3.6.4 Response Parsing (gemini_client.py)
-After streaming completes, the full response is parsed to extract the citations JSON block:
-
-import re, json
-
-def parse_response(raw: str) -> tuple[str, list[dict]]:
-    pattern = r"```citations\s*([\s\S]+?)```"
-    match = re.search(pattern, raw)
-    citations = []
-    prose = raw
-    if match:
-        prose = raw[:match.start()].strip()
-        try:
-            citations = json.loads(match.group(1))
-        except json.JSONDecodeError:
-            citations = []
-    return prose, citations
-
-3.6.5 SSE Streaming Endpoint (/chat)
-from fastapi.responses import StreamingResponse
-
-@router.post("/chat")
-async def chat(req: ChatRequest):
-    chunks = retriever.retrieve_top_chunks(
-        req.message, req.active_source_ids
-    )
-    context = prompt_builder.build_context_block(chunks)
-    system_prompt = SYSTEM_PROMPT.format(context_block=context)
-
-    async def event_stream():
-        full_response = ""
-        async for token in gemini_client.stream(
-            system_prompt, req.history, req.message
-        ):
-            full_response += token
-            yield f"data: {json.dumps({'token': token})}\n\n"
-
-        # Parse and send citations after stream ends
-        prose, citations = parse_response(full_response)
-        yield f"data: {json.dumps({'citations': citations, 'done': True})}\n\n"
-
-    return StreamingResponse(event_stream(),
-        media_type="text/event-stream")
-
-
-
-PHASE 07
-Data Architecture - JSON Store Design
-? Duration: 2-3 days   ·   Multi-source data management
-Phase 7 Objectives
-• Design the complete JSON schema for sources, chunks, and sessions.
-• Implement atomic read/write with file locking to prevent race conditions.
-• Structure chunk files for efficient per-source and cross-source lookups.
-
-3.7.1 sources.json Schema
-The master registry. One record per uploaded source.
-
-{
-  "sources": [
-    {
-      "id": "src_01HX2K...",        // ULID - sortable unique ID
-      "name": "Q4 Report 2024.pdf", // Display name
-      "type": "pdf",                // pdf | url | text
-      "active": true,               // Is it in AI context?
-      "chunk_count": 42,
-      "word_count": 18240,
-      "created_at": "2025-07-01T10:00:00Z",
-      "updated_at": "2025-07-01T10:00:00Z",
-      "meta": {
-        "url": null,                // Set if type=url
-        "page_count": 12,           // Set if type=pdf
-        "language": "vi"            // Detected language
-      }
-    }
-  ]
-}
-
-3.7.2 chunks/{source_id}.json Schema
-One file per source. Each chunk is a self-contained retrieval unit.
-
-{
-  "source_id": "src_01HX2K...",
-  "chunks": [
-    {
-      "id": "src_01HX2K..._0",
-      "source_id": "src_01HX2K...",
-      "index": 0,                   // Sequential chunk number
-      "text": "...raw passage...",
-      "token_count": 387,
-      "char_start": 0,              // Character offset in original
-      "char_end": 1840,
-      "page": 1                     // PDF page number (if applicable)
-    }
-  ]
-}
-
-3.7.3 sessions/{session_id}.json Schema
-{
-  "id": "ses_01HX2L...",
-  "created_at": "2025-07-01T10:30:00Z",
-  "messages": [
-    {
-      "role": "user",
-      "content": "What are the key findings?",
-      "timestamp": "2025-07-01T10:31:00Z"
-    },
-    {
-      "role": "assistant",
-      "content": "The key findings include [1] ...",
-      "citations": [
-        { "id": 1, "source_id": "src_01HX2K...",
-          "chunk_index": 3, "text": "..." }
-      ],
-      "timestamp": "2025-07-01T10:31:08Z"
-    }
-  ]
-}
-
-
-
-PHASE 08
-Polish - Animations, UX Micro-interactions & QA
-? Duration: 3-4 days   ·   Premium finishing touches
-Phase 8 Objectives
-• Implement all loading states, skeleton screens, and empty states.
-• Add micro-interaction animations: card hover glow, button ripple, message slide-in.
-• Streaming text cursor animation (blinking caret at end of stream).
-• Responsive breakpoints: collapse to 2-pane on tablet, 1-pane on mobile.
-• Error boundaries: offline detection, API error toasts, retry logic.
-
-3.8.1 Key Animations (animations.css)
-@keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(59,130,246,0.2); }
-  50%       { box-shadow: 0 0 24px rgba(59,130,246,0.5); }
-}
-
-@keyframes streamCursor {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
-
-.message-assistant { animation: fadeSlideUp 0.3s var(--ease); }
-.source-card.active { animation: glowPulse 3s ease infinite; }
-.stream-cursor::after {
-  content: "?";
-  animation: streamCursor 0.8s step-end infinite;
-}
-
-3.8.2 Skeleton Loading Screens
-While summary or chat loads, render shimmering skeleton placeholders using CSS gradients. Never show empty white space.
-
-3.8.3 Empty State Design
-StateUI TreatmentNo sourcesFull-height centered card: upload icon + "Add your first source" CTA button.No active sources in chatInline warning chip in chat: "No sources active - enable sources to chat."Empty summarySubtle italic text: "Add and activate sources to generate a summary."API errorSlide-in toast notification from bottom-right. Red glass border. Auto-dismiss 5s.
-
-
-4. API Endpoint Reference
-
-Method + PathRequest BodyResponsePOST /sources{ name, type, content | url }{ id, name, type, chunk_count, word_count }GET /sources-{ sources: Source[] }PATCH /sources/{id}{ active: bool }{ id, active }DELETE /sources/{id}-{ deleted: true }POST /summary{ source_ids: str[] }SSE stream of markdown textGET /suggested-questions?source_ids=...{ questions: str[] }POST /chat{ message, history, active_source_ids }SSE: token events + citations JSON
-
-
-5. Project Timeline & Milestones
-
-PhaseDurationMilestone01 - Foundation & Design System3-4 daysTriple-pane shell visible, tokens complete, glass utilities working02 - Source Manager (Pane 1)4-5 daysUpload, toggle, delete sources; state management live03 - Source Guide & Viewer (Pane 2)4-5 daysNotebook summary SSE, suggested questions, document reader04 - Grounded Chat + Citation Engine (Pane 3)6-7 daysFull chat flow with [1][2] badges, tooltips, viewer sync05 - FastAPI Backend + Source Engine5-6 daysIngestor, chunker, BM25 retriever, JSON data layer live06 - Prompt Engineering & Gemini Integration4-5 daysGrounded answers with parseable citation metadata07 - Data Architecture2-3 daysFull JSON schema, file locking, session persistence08 - Polish & QA3-4 daysAnimations, skeletons, empty states, error handling, mobileTOTAL31-39 daysProduction-ready DocMind v1.0
-
-
-6. Dependencies & Setup
-
-6.1 Backend requirements.txt
-fastapi==0.111.0
-uvicorn[standard]==0.29.0
-python-multipart==0.0.9
-pydantic==2.7.1
-httpx==0.27.0
-beautifulsoup4==4.12.3
-pymupdf==1.24.4          # PDF parsing
-nltk==3.8.1              # Sentence tokenization
-rank-bm25==0.2.2         # BM25 retrieval
-google-generativeai==0.7.0
-python-ulid==2.7.0       # Sortable unique IDs
-aiofiles==23.2.1         # Async file I/O
-
-6.2 Frontend Dependencies (CDN - No npm)
-The frontend uses zero npm packages. All utilities are vanilla or loaded via CDN:
-• marked.js (CDN) - markdown ? HTML rendering for chat messages.
-• No framework - plain ES6 modules with dynamic import().
-• All glass effects via pure CSS backdrop-filter.
-
-6.3 Environment Variables (.env)
-GEMINI_API_KEY=your_gemini_api_key_here
-DATA_DIR=./data
-MAX_CHUNK_TOKENS=400
-OVERLAP_SENTENCES=3
-TOP_K_CHUNKS=8
-CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173"]
-
-6.4 Run Commands
-# Backend
-cd backend && pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-
-# Frontend (no build step needed)
-cd frontend && python -m http.server 5173
-# Or use: npx serve . -p 5173
-
-
-
-7. Aesthetic & UX Guidelines
-
-Every design decision in DocMind must satisfy four criteria:
-
-CriterionImplementation RuleFuturisticDeep navy backgrounds (#0a0e1a), radial gradient depth, glowing accents. Never white backgrounds in panels.Clean & MinimalMaximum information density with zero visual clutter. Icons, not labels where possible. 8px base grid.High-end / PremiumGlassmorphism on all interactive surfaces. Subtle glow on hover. Smooth 200ms transitions everywhere.Content-FocusedUI chrome is minimal. Source text and AI responses dominate the visual weight. No decorative elements.Tonal HierarchyThree text colors only: primary (#e8eaf6), secondary (#94a3b8), muted (#4a5568). No other text colors.Interaction FeedbackEvery click, toggle, upload triggers an immediate visual response. Never silent actions.Dark Mode OnlyDocMind is dark-mode-native. No light mode toggle. Deep blue is the identity.
-? Key Premium Detail - Citation Badges
-The [1][2] citation badges are the signature interaction of DocMind.
-They must feel like a premium feature: glowing blue pill, smooth hover expansion,
-popover with frosted glass background. This is the element users will screenshot and share.
-Invest disproportionate design time here.
-? Anti-Patterns - Never Do These
-• Never use a white or light background on any panel.
-• Never show a spinner without a skeleton screen underneath.
-• Never allow the chat to respond without active sources - show a clear warning.
-• Never use non-glass modals or alerts - everything must maintain the aesthetic.
-• Never let the AI answer without citations - enforce this at the prompt level.
-
-
-8. Summary
-DocMind is a fully-specified, production-ready Document Intelligence platform. This implementation plan covers every layer from CSS tokens to Gemini prompt engineering. The eight phases are sequenced to deliver working vertical slices early - Phase 4 (citations) is the core value proposition and receives the most implementation time.
-
-The system's defining technical innovations are:
-• Source-centric activation model - only checked sources enter the AI context window.
-• BM25 retrieval - deterministic, fast, no vector database required for v1.
-• Structured citation protocol - Gemini outputs a parseable JSON citations block alongside prose.
-• SSE-first streaming - every AI response streams token-by-token; no blocking waits.
-• Citation-to-source sync - clicking [1] in chat scrolls and highlights in the Document Reader.
-
-This plan is ready for immediate implementation. Phases 1-4 (frontend) and Phases 5-6 (backend) can be developed in parallel by two engineers.
-
-DocMind Implementation Plan v1.0
-Senior Fullstack Architect & Lead Designer Edition
-All rights reserved - Internal Project Document
-DocMind  ·  Implementation Plan v1.0  ·  Senior Fullstack Architect Edition
-
-Confidential - DocMind Project  ·  Implementation Plan v1.0
-
