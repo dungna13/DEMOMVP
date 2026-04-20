@@ -5,13 +5,14 @@ __pycache__/
 venv/
 .env
 
-# App Data (IMPORTANT: Protect your crawled documents)
-backend/data/sources.json
-backend/data/chunks/
-backend/data/storage/
-backend/data/*.json
-backend/data/*.pdf
+# Data & Storage
+data/
+docmind/backend/data/
+docmind/backend/venv/
 
-# Local OS files
+# Frontend
+node_modules/
 .DS_Store
-Thumbs.db
+
+# Logs
+*.log
