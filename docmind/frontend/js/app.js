@@ -24,16 +24,26 @@ class App {
     this.bindEvents();
   }
 
-  bindEvents() {
-    // Listen for tab changes
-    const tabs = document.querySelectorAll('.tab-item');
-    tabs.forEach(tab => {
-      tab.onclick = () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
+    // Mobile Nav Switching
+    const mobileNavItems = document.querySelectorAll('.nav-item');
+    const panes = document.querySelectorAll('.pane');
+    
+    // Set default active pane for mobile
+    const chatPane = document.getElementById('chat-pane');
+    if (chatPane) chatPane.classList.add('active-mobile');
+
+    mobileNavItems.forEach(item => {
+      item.onclick = () => {
+        const targetPaneId = item.dataset.pane;
         
-        const tabName = tab.dataset.tab;
-        this.switchTab(tabName);
+        // Update Nav UI
+        mobileNavItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
+        // Update Panes UI
+        panes.forEach(p => p.classList.remove('active-mobile'));
+        const targetPane = document.getElementById(targetPaneId);
+        if (targetPane) targetPane.classList.add('active-mobile');
       };
     });
   }

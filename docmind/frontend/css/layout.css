@@ -19,13 +19,58 @@
 @media (max-width: 768px) {
   .app-shell {
     grid-template-columns: 1fr;
-    grid-template-rows: 64px 1fr;
-  }
-  #sidebar-pane, #viewer-pane {
-    display: none; /* Hide sidebars on mobile */
+    grid-template-rows: 60px 1fr 70px; /* Height for topbar, content, and bottom-nav */
   }
   
-  /* Show menu button on mobile - we might need to add this to topbar.html */
+  .pane {
+    display: none; /* Hide all by default */
+    margin: 0;
+    border-radius: 0;
+    border: none;
+  }
+  
+  .pane.active-mobile {
+    display: flex; /* Show only the active one */
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .mobile-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(15px);
+    border-top: 1px solid var(--glass-border);
+    z-index: 100;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: var(--clr-text-muted);
+    font-size: 10px;
+    padding: 10px 0;
+    transition: all 0.2s;
+  }
+
+  .nav-item.active {
+    color: var(--clr-accent-blue);
+    transform: translateY(-2px);
+  }
+
+  .nav-item.active svg {
+    filter: drop-shadow(0 2px 4px rgba(26, 115, 232, 0.3));
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .top-bar {
