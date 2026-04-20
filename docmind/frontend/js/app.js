@@ -29,7 +29,7 @@ class App {
     const panes = document.querySelectorAll('.pane');
     
     // Set default active pane for mobile
-    const chatPane = document.getElementById('chat-pane');
+    const chatPane = document.getElementById('pane-chat');
     if (chatPane) chatPane.classList.add('active-mobile');
 
     mobileNavItems.forEach(item => {

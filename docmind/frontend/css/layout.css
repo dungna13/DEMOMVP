@@ -19,19 +19,29 @@
 @media (max-width: 768px) {
   .app-shell {
     grid-template-columns: 1fr;
-    grid-template-rows: 60px 1fr 70px; /* Height for topbar, content, and bottom-nav */
+    grid-template-rows: 60px 1fr 70px;
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .top-bar .logo-text {
+    display: none; /* Hide 'DocMind' text to save space */
   }
   
   .pane {
-    display: none; /* Hide all by default */
+    display: none; 
     margin: 0;
     border-radius: 0;
     border: none;
+    height: 100%;
+    overflow: hidden;
   }
   
   .pane.active-mobile {
-    display: flex; /* Show only the active one */
-    animation: slideUp 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.2s ease-out;
   }
 
   .mobile-nav {
