@@ -202,7 +202,11 @@ export class SourceManager {
       ]),
       createElement('div', { className: 'source-info' }, [
         createElement('div', { className: 'source-name' }, source.name),
-        createElement('div', { className: 'source-meta' }, `${source.chunk_count || 0} chunks • ${source.word_count || 0} words`)
+        createElement('div', { className: 'source-meta' }, [
+          source.meta?.document_number ? createElement('span', { style: { color: 'var(--accent-primary)', fontWeight: 'bold' } }, source.meta.document_number + ' • ') : '',
+          source.meta?.issuance_date ? source.meta.issuance_date + ' • ' : '',
+          `${source.chunk_count || 0} chunks • ${source.word_count || 0} words`
+        ])
       ]),
       createElement('div', { className: 'source-actions' }, [
         createElement('button', {

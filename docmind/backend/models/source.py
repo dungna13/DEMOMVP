@@ -5,8 +5,11 @@ from typing import Optional, Dict, Any
 class SourceMeta(BaseModel):
     url: Optional[str] = None
     page_count: Optional[int] = None
-    language: Optional[str] = "en"
-    local_path: Optional[str] = None # Path to original saved file
+    language: Optional[str] = "vi"
+    local_path: Optional[str] = None 
+    document_number: Optional[str] = None # e.g., 691/QĐ-TTg
+    issuance_date: Optional[str] = None # e.g., 15/04/2026
+    issuing_authority: Optional[str] = None # e.g., Thủ tướng Chính phủ
 
 class Source(BaseModel):
     id: str

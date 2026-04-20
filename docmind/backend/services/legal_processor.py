@@ -6,7 +6,7 @@ and produce semantically meaningful chunks with metadata.
 import json
 import os
 import google.generativeai as genai
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 LEGAL_PROCESSING_PROMPT = """
 Bạn là một hệ thống AI chuyên xử lý văn bản pháp luật tiếng Việt để phục vụ hệ thống RAG (Retrieval-Augmented Generation).
@@ -76,9 +76,61 @@ DỮ LIỆU ĐẦU VÀO:
 """
 
 
+
+DOC_INFO_PROMPT = """
+Bạn là một chuyên gia phân tích văn bản pháp luật Việt Nam. 
+NHIỆM VỤ: Hãy trích xuất thông tin định danh của văn bản từ đoạn nội dung sau.
+
+DỮ LIỆU ĐẦU VÀO (thường là phần đầu văn bản):
+\"\"\"
+{header_text}
+\"\"\"
+
+YÊU CẦU OUTPUT:
+Chỉ trả về JSON với định dạng sau, không giải thích thêm:
+{
+  "document_number": "Số hiệu văn bản (ví dụ: 691/QĐ-TTg)",
+  "issuance_date": "Ngày ban hành (ví dụ: 15/04/2026)",
+  "issuing_authority": "Cơ quan ban hành (ví dụ: Thủ tướng Chính phủ)"
+}
+Nếu không tìm thấy thông tin nào, hãy để giá trị là null.
+"""
+
+
 def get_model():
     """Get or create the Gemini model for legal processing."""
     return genai.GenerativeModel('gemini-1.5-flash')
+
+
+async def extract_document_info(text: str) -> Dict[str, Optional[str]]:
+    """
+    Extract document number, date, and authority from the first part of the text.
+    """
+    # Only use the first 3000 characters for header info
+    header = text[:3000]
+    
+    model = get_model()
+    prompt = DOC_INFO_PROMPT.replace("{header_text}", header)
+    
+    try:
+        response = await model.generate_content_async(prompt)
+        result_text = response.text.strip()
+        
+        # Clean markdown
+        if "```json" in result_text:
+            result_text = result_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in result_text:
+            result_text = result_text.split("```")[1].split("```")[0].strip()
+            
+        info = json.loads(result_text)
+        return {
+            "document_number": info.get("document_number"),
+            "issuance_date": info.get("issuance_date"),
+            "issuing_authority": info.get("issuing_authority")
+        }
+    except Exception as e:
+        print(f"[LegalProcessor] Meta extraction error: {e}")
+        return {"document_number": None, "issuance_date": None, "issuing_authority": None}
 
 
 async def process_legal_document(raw_text: str) -> List[Dict]:

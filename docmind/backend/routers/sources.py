@@ -8,7 +8,7 @@ from typing import List, Dict
 from models.source import Source, SourceCreate, SourceUpdate, URLSourceCreate, SourceMeta
 from models.chunk import Chunk
 from services import ingestor, chunker
-from services.legal_processor import process_large_document
+from services.legal_processor import process_large_document, extract_document_info
 
 router = APIRouter(prefix="/sources")
 DATA_DIR = os.getenv("DATA_DIR", "./data")
@@ -109,6 +109,7 @@ async def get_sources():
 async def create_source(req: SourceCreate):
     source_id = str(uuid.uuid4())
     local_path = None
+    doc_info = {"document_number": None, "issuance_date": None, "issuing_authority": None}
     
     try:
         if req.type == "pdf":
@@ -119,6 +120,7 @@ async def create_source(req: SourceCreate):
             # 2. Process with smart pipeline
             chunks = await smart_ingest_pdf(req.content, source_id)
             text = " ".join([c.text for c in chunks])
+            doc_info = await extract_document_info(text)
         else:
             # 1. Save original text file
             text = ingestor.get_text_from_source(req.type, req.content)
@@ -135,7 +137,12 @@ async def create_source(req: SourceCreate):
             type=req.type,
             chunk_count=len(chunks),
             word_count=len(text.split()),
-            meta=SourceMeta(local_path=local_path)
+            meta=SourceMeta(
+                local_path=local_path,
+                document_number=doc_info.get("document_number"),
+                issuance_date=doc_info.get("issuance_date"),
+                issuing_authority=doc_info.get("issuing_authority")
+            )
         )
         
         sources = load_sources()
@@ -152,6 +159,7 @@ async def create_source(req: SourceCreate):
 @router.post("/url", response_model=Source)
 async def create_source_from_url(req: URLSourceCreate):
     source_id = str(uuid.uuid4())
+    doc_info = {"document_number": None, "issuance_date": None, "issuing_authority": None}
     print(f"[URL Import] Starting import for {req.url}")
     
     try:
@@ -175,6 +183,7 @@ async def create_source_from_url(req: URLSourceCreate):
                 b64_content = base64.b64encode(binary_content).decode('utf-8')
                 chunks = await smart_ingest_pdf(b64_content, source_id)
                 text = " ".join([c.text for c in chunks])
+                doc_info = await extract_document_info(text)
             else:
                 doc_type = "text"
                 local_path = save_original_file(source_id, binary_content, "txt")
@@ -191,7 +200,13 @@ async def create_source_from_url(req: URLSourceCreate):
                 type=doc_type,
                 chunk_count=len(chunks),
                 word_count=len(text.split()),
-                meta=SourceMeta(url=req.url, local_path=local_path)
+                meta=SourceMeta(
+                    url=req.url, 
+                    local_path=local_path,
+                    document_number=doc_info.get("document_number"),
+                    issuance_date=doc_info.get("issuance_date"),
+                    issuing_authority=doc_info.get("issuing_authority")
+                )
             )
             
             sources = load_sources()
