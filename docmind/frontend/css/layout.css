@@ -9,6 +9,25 @@
   font-family: 'Google Sans', 'Inter', system-ui, -apple-system, sans-serif;
 }
 
+@media (max-width: 1024px) {
+  .app-shell {
+    grid-template-columns: 300px 1fr;
+  }
+  #viewer-pane { display: none; } /* Hide citation pane on tablets */
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: 64px 1fr;
+  }
+  #sidebar-pane, #viewer-pane {
+    display: none; /* Hide sidebars on mobile */
+  }
+  
+  /* Show menu button on mobile - we might need to add this to topbar.html */
+}
+
 .top-bar {
   grid-column: 1 / -1;
   display: flex;

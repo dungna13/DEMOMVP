@@ -48,7 +48,34 @@
   outline: none;
 }
 
-.glass-input:focus {
-  border-color: var(--clr-accent-blue);
-  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-md);
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: var(--r-lg);
+  padding: var(--sp-lg);
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    padding: var(--sp-md);
+    margin: var(--sp-xs);
+  }
 }
