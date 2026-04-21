@@ -8,7 +8,7 @@ from services.ingestor import ingest_pdf_smart
 async def benchmark():
     print("=== DOCMIND PURE OCR BENCHMARK (0 TOKENS) ===")
     target_url = "https://vanban.chinhphu.vn/he-thong-van-ban?classid=0&mode=1"
-    max_docs = 3 
+    max_docs = 10 
     
     print(f"1. Đang quét danh sách văn bản từ: {target_url}...")
     docs = await crawl_and_collect_pdfs(target_url, max_documents=max_docs)
