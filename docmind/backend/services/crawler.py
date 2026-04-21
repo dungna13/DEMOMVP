@@ -32,35 +32,30 @@ BROWSER_HEADERS = {
 async def crawl_chinhphu_page(
     url: str,
     max_results: int = 50,
+    page: int = 1,
 ) -> List[CrawledDocument]:
     """
     Crawl a listing page from vanban.chinhphu.vn.
-    
-    The page structure is:
-      <table>
-        <tr>
-          <td> <a><span>Số ký hiệu</span></a> </td>
-          <td> Ngày ban hành </td>
-          <td> 
-            <a>Trích yếu (title)</a>
-            <a href="https://datafiles.chinhphu.vn/...pdf">Tài liệu đính kèm</a>
-          </td>
-        </tr>
-      </table>
     """
-    # Ensure maxresults param is in URL
-    if "maxresults" not in url.lower():
-        separator = "&" if "?" in url else "?"
-        url = f"{url}{separator}maxresults={max_results}"
+    # Build URL with pagination
+    separator = "&" if "?" in url else "?"
+    if "p=" not in url:
+        url = f"{url}{separator}p={page}"
+    if "maxresults=" not in url:
+        url = f"{url}&maxresults={max_results}"
     
     print(f"[Crawler] Fetching: {url}")
     
     async with httpx.AsyncClient(
         timeout=30.0, headers=BROWSER_HEADERS, follow_redirects=True
     ) as client:
-        response = await client.get(url)
-        if response.status_code != 200:
-            print(f"[Crawler] HTTP {response.status_code}")
+        try:
+            response = await client.get(url)
+            if response.status_code != 200:
+                print(f"[Crawler] HTTP {response.status_code}")
+                return []
+        except Exception as e:
+            print(f"[Crawler] Error fetching {url}: {e}")
             return []
     
     soup = BeautifulSoup(response.text, "html.parser")

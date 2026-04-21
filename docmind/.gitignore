@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+.env
+backend/data/
+backend/venv/
+backend/__pycache__/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+backend/data/full_crawl_progress.db
+backend/data/files/
+backend/data/chunks/
