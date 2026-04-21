@@ -197,7 +197,10 @@ async def main():
             if resp.status_code == 200:
                 docs = parse_listing_page(resp.text, p)
                 for d in docs:
-                    conn.execute("INSERT OR IGNORE INTO documents VALUES (?,?,?,?,?)", (d["id"], d["doc_number"], d["title"], d["issue_date"], d["pdf_url"]))
+                    conn.execute("""
+                        INSERT OR IGNORE INTO documents (id, doc_number, title, issue_date, pdf_url) 
+                        VALUES (?,?,?,?,?)
+                    """, (d["id"], d["doc_number"], d["title"], d["issue_date"], d["pdf_url"]))
                 conn.commit()
                 if p % 10 == 0: print(f"   Crawled page {p}")
 
