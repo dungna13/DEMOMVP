@@ -366,28 +366,49 @@ def extract_text_from_pdf(pdf_path: str) -> Tuple[str, int]:
     return "\n\n".join(pages), page_count
 
 
-def detect_legal_structure(text: str) -> Dict[str, Any]:
-    """Detect Điều/Khoản/Chương from text using regex."""
-    meta = {"dieu": None, "khoan": None, "chuong": None, "page": None}
+def detect_legal_structure(text: str, doc_number: str = "") -> Dict[str, Any]:
+    """Detect Điều/Khoản/Chương and Issuing Authority."""
+    meta = {
+        "dieu": None, "khoan": None, "chuong": None, "page": None,
+        "issuing_authority": None
+    }
 
-    # Detect page
+    # 1. Map Authority from Document Number
+    if doc_number:
+        auth_map = {
+            "-TTg": "Thủ tướng Chính phủ",
+            "-CP": "Chính phủ",
+            "-QH": "Quốc hội",
+            "-CTN": "Chủ tịch nước",
+            "-BNV": "Bộ Nội vụ",
+            "-BTC": "Bộ Tài chính",
+            "-BTP": "Bộ Tư pháp",
+            "-VPCP": "Văn phòng Chính phủ",
+            "/QH": "Quốc hội"
+        }
+        for suffix, auth in auth_map.items():
+            if suffix in doc_number.upper():
+                meta["issuing_authority"] = auth
+                break
+
+    # 2. Detect page
     page_match = re.search(r'\[\[PAGE_(\d+)\]\]', text)
     if page_match:
         meta["page"] = int(page_match.group(1))
 
-    # Detect Chương
-    chuong_match = re.search(r'Chương\s+([IVXLCDM]+|\d+)', text)
+    # 3. Detect Chương
+    chuong_match = re.search(r'Chương\s+([IVXLCDM]+|\d+)', text, re.IGNORECASE)
     if chuong_match:
         meta["chuong"] = chuong_match.group(1)
 
-    # Detect Điều
-    dieu_match = re.search(r'Điều\s+(\d+)', text)
+    # 4. Detect Điều (Support "Điều 1.", "Điều 1:")
+    dieu_match = re.search(r'Điều\s+(\d+)', text, re.IGNORECASE)
     if dieu_match:
         meta["dieu"] = int(dieu_match.group(1))
 
-    # Detect Khoản
-    khoan_match = re.search(r'(\d+)\.\s', text)
-    if khoan_match and meta["dieu"]:
+    # 5. Detect Khoản (Support "1.", "2.")
+    khoan_match = re.search(r'^(\d+)\.\s', text.strip())
+    if khoan_match:
         meta["khoan"] = khoan_match.group(1)
 
     return meta
@@ -408,7 +429,7 @@ def chunk_text_simple(text: str, source_id: str, doc_meta: Dict,
         tokens = len(sentence.split())
         if buf_tokens + tokens > target_tokens and buffer:
             chunk_text_content = " ".join(buffer)
-            legal = detect_legal_structure(chunk_text_content)
+            legal = detect_legal_structure(chunk_text_content, doc_meta.get("doc_number", ""))
             # Clean page markers from output text
             clean_text = re.sub(r'\[\[PAGE_\d+\]\]\s*', '', chunk_text_content).strip()
 
@@ -427,7 +448,7 @@ def chunk_text_simple(text: str, source_id: str, doc_meta: Dict,
                     "chuong": legal["chuong"],
                     "document_number": doc_meta.get("doc_number"),
                     "issuance_date": doc_meta.get("issue_date"),
-                    "issuing_authority": None,
+                    "issuing_authority": legal["issuing_authority"],
                 })
                 chunk_idx += 1
 
@@ -440,7 +461,7 @@ def chunk_text_simple(text: str, source_id: str, doc_meta: Dict,
     # Last chunk
     if buffer:
         chunk_text_content = " ".join(buffer)
-        legal = detect_legal_structure(chunk_text_content)
+        legal = detect_legal_structure(chunk_text_content, doc_meta.get("doc_number", ""))
         clean_text = re.sub(r'\[\[PAGE_\d+\]\]\s*', '', chunk_text_content).strip()
         if clean_text and len(clean_text) > 10:
             chunks.append({
@@ -456,7 +477,7 @@ def chunk_text_simple(text: str, source_id: str, doc_meta: Dict,
                 "chuong": legal["chuong"],
                 "document_number": doc_meta.get("doc_number"),
                 "issuance_date": doc_meta.get("issue_date"),
-                "issuing_authority": None,
+                "issuing_authority": legal["issuing_authority"],
             })
 
     return chunks
@@ -469,6 +490,9 @@ def create_metadata_chunk(doc: Dict) -> List[Dict]:
     if doc.get("issue_date"):
         text += f" (Ban hành: {doc['issue_date']})"
 
+    # Try to get authority for metadata chunk too
+    legal_meta = detect_legal_structure("", doc.get("doc_number", ""))
+
     return [{
         "id": f"{source_id}_0",
         "source_id": source_id,
@@ -479,7 +503,7 @@ def create_metadata_chunk(doc: Dict) -> List[Dict]:
         "dieu": None, "khoan": None, "chuong": None,
         "document_number": doc.get("doc_number"),
         "issuance_date": doc.get("issue_date"),
-        "issuing_authority": None,
+        "issuing_authority": legal_meta["issuing_authority"],
     }]
 
 
