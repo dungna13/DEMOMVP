@@ -87,7 +87,8 @@ def load_sources():
     if os.path.exists(SOURCES_PATH):
         try:
             with open(SOURCES_PATH, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                return data if isinstance(data, list) else []
         except: return []
     return []
 
