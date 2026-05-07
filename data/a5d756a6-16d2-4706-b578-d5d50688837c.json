@@ -1,0 +1,53 @@
+{
+  "source_id": "a5d756a6-16d2-4706-b578-d5d50688837c",
+  "chunks": [
+    {
+      "id": "a5d756a6-16d2-4706-b578-d5d50688837c_0",
+      "source_id": "a5d756a6-16d2-4706-b578-d5d50688837c",
+      "index": 0,
+      "text": "Phê chuẩn kết quả bầu chức vụ Chủ tịch Ủy ban nhân dân tỉnh Hưng Yên nhiệm kỳ 2026 - 2031 đối với ông Nguyễn Mạnh Quyền, Phó Bí thư Tỉnh ủy Hưng Yên nhiệm kỳ 2025 - 2030.",
+      "token_count": 39,
+      "page": null,
+      "char_start": null,
+      "char_end": null,
+      "dieu": 1,
+      "khoan": null,
+      "chuong": null,
+      "document_number": "689/QĐ-TTg",
+      "issuance_date": "14/04/2026",
+      "issuing_authority": "Thủ tướng Chính phủ"
+    },
+    {
+      "id": "a5d756a6-16d2-4706-b578-d5d50688837c_1",
+      "source_id": "a5d756a6-16d2-4706-b578-d5d50688837c",
+      "index": 1,
+      "text": "Quyết định này có hiệu lực thi hành kể từ ngày ký ban hành.",
+      "token_count": 14,
+      "page": null,
+      "char_start": null,
+      "char_end": null,
+      "dieu": 2,
+      "khoan": null,
+      "chuong": null,
+      "document_number": "689/QĐ-TTg",
+      "issuance_date": "14/04/2026",
+      "issuing_authority": "Thủ tướng Chính phủ"
+    },
+    {
+      "id": "a5d756a6-16d2-4706-b578-d5d50688837c_2",
+      "source_id": "a5d756a6-16d2-4706-b578-d5d50688837c",
+      "index": 2,
+      "text": "Bộ trưởng Bộ Nội vụ, Hội đồng nhân dân, Ủy ban nhân dân tỉnh Hưng Yên và ông Nguyễn Mạnh Quyền chịu trách nhiệm thi hành Quyết định này.",
+      "token_count": 29,
+      "page": null,
+      "char_start": null,
+      "char_end": null,
+      "dieu": 3,
+      "khoan": null,
+      "chuong": null,
+      "document_number": "689/QĐ-TTg",
+      "issuance_date": "14/04/2026",
+      "issuing_authority": "Thủ tướng Chính phủ"
+    }
+  ]
+}

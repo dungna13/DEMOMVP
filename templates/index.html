@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if query %}Kết quả: "{{ query }}" — Tìm kiếm Văn bản{% else %}Tìm kiếm Văn bản Hành chính Quốc gia{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO + SEARCH -->
+<section class="hero">
+  <div class="hero-badge">⚡ Phase 1 MVP · Full-text Search</div>
+  <h1 class="hero-title">Tìm kiếm Văn bản<br/>Hành chính Quốc gia</h1>
+  <p class="hero-subtitle">Tra cứu văn bản quy phạm pháp luật, quyết định hành chính — nhanh chóng, chính xác, đúng hiệu lực.</p>
+
+  <div class="search-wrapper">
+    <form id="search-form" action="/search" method="get">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          id="search-input"
+          class="search-input"
+          type="text"
+          name="q"
+          value="{{ query }}"
+          placeholder="Nhập số hiệu, tiêu đề, tên cơ quan... (/ để focus)"
+          autocomplete="off"
+        />
+        {% if filters.doc_type %}<input type="hidden" name="doc_type" value="{{ filters.doc_type }}" />{% endif %}
+        {% if filters.authority %}<input type="hidden" name="authority" value="{{ filters.authority }}" />{% endif %}
+        {% if filters.year %}<input type="hidden" name="year" value="{{ filters.year }}" />{% endif %}
+        {% if filters.status %}<input type="hidden" name="status" value="{{ filters.status }}" />{% endif %}
+        <button type="submit" class="search-btn">Tìm kiếm</button>
+      </div>
+    </form>
+
+    <div class="search-hints">
+      <span class="search-hint-chip">689/QĐ-TTg</span>
+      <span class="search-hint-chip">Hưng Yên</span>
+      <span class="search-hint-chip">Chủ tịch UBND</span>
+      <span class="search-hint-chip">Thủ tướng Chính phủ</span>
+      <span class="search-hint-chip">phê chuẩn</span>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-value" data-count="{{ total if query else facets.doc_types | sum(attribute='cnt') if facets.doc_types else 0 }}">
+      {{ total if query else (facets.doc_types | sum(attribute='cnt') if facets.doc_types else 0) }}
+    </span>
+    <span class="stat-label">{% if query %}Kết quả tìm được{% else %}Văn bản{% endif %}</span>
+  </div>
+  {% if facets.doc_types %}
+  <div class="stat-item">
+    <span class="stat-value" data-count="{{ facets.doc_types | length }}">{{ facets.doc_types | length }}</span>
+    <span class="stat-label">Loại văn bản</span>
+  </div>
+  {% endif %}
+  {% if facets.authorities %}
+  <div class="stat-item">
+    <span class="stat-value" data-count="{{ facets.authorities | length }}">{{ facets.authorities | length }}</span>
+    <span class="stat-label">Cơ quan ban hành</span>
+  </div>
+  {% endif %}
+  <div class="stat-item">
+    <span class="stat-value">BM25</span>
+    <span class="stat-label">Thuật toán</span>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT: SIDEBAR + RESULTS -->
+<div class="main-layout">
+
+  <!-- SIDEBAR FACETS -->
+  <aside class="sidebar">
+    {% if facets.effectiveness %}
+    <div class="facet-card">
+      <div class="facet-title">🔴 Hiệu lực</div>
+      <ul class="facet-list">
+        <li>
+          <a href="/search?q={{ query }}" class="facet-item {% if not filters.status %}active{% endif %}">
+            <span>Tất cả</span>
+          </a>
+        </li>
+        {% for item in facets.effectiveness %}
+        <li>
+          <a href="/search?q={{ query }}&status={{ item.effectiveness_status }}{% if filters.doc_type %}&doc_type={{ filters.doc_type }}{% endif %}{% if filters.year %}&year={{ filters.year }}{% endif %}"
+             class="facet-item {% if filters.status == item.effectiveness_status %}active{% endif %}">
+            <span>{{ item.effectiveness_status | effectiveness_label }}</span>
+            <span class="facet-count">{{ item.cnt }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if facets.doc_types %}
+    <div class="facet-card">
+      <div class="facet-title">📄 Loại văn bản</div>
+      <ul class="facet-list">
+        <li>
+          <a href="/search?q={{ query }}{% if filters.status %}&status={{ filters.status }}{% endif %}" class="facet-item {% if not filters.doc_type %}active{% endif %}">
+            <span>Tất cả</span>
+          </a>
+        </li>
+        {% for item in facets.doc_types %}
+        <li>
+          <a href="/search?q={{ query }}&doc_type={{ item.doc_type }}{% if filters.status %}&status={{ filters.status }}{% endif %}{% if filters.year %}&year={{ filters.year }}{% endif %}"
+             class="facet-item {% if filters.doc_type == item.doc_type %}active{% endif %}">
+            <span>{{ item.doc_type | doc_type_label }}</span>
+            <span class="facet-count">{{ item.cnt }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if facets.authorities %}
+    <div class="facet-card">
+      <div class="facet-title">🏛 Cơ quan ban hành</div>
+      <ul class="facet-list">
+        {% for item in facets.authorities %}
+        <li>
+          <a href="/search?q={{ query }}&authority={{ item.issuing_authority | urlencode }}{% if filters.doc_type %}&doc_type={{ filters.doc_type }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}"
+             class="facet-item {% if filters.authority == item.issuing_authority %}active{% endif %}">
+            <span>{{ item.issuing_authority }}</span>
+            <span class="facet-count">{{ item.cnt }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if facets.years %}
+    <div class="facet-card">
+      <div class="facet-title">📅 Năm ban hành</div>
+      <ul class="facet-list">
+        {% for item in facets.years %}
+        <li>
+          <a href="/search?q={{ query }}&year={{ item.year }}{% if filters.doc_type %}&doc_type={{ filters.doc_type }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}"
+             class="facet-item {% if filters.year | string == item.year %}active{% endif %}">
+            <span>{{ item.year }}</span>
+            <span class="facet-count">{{ item.cnt }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </aside>
+
+  <!-- RESULTS -->
+  <main>
+    {% if query or results %}
+    <div class="results-header">
+      <div class="results-count">
+        {% if query %}
+          Tìm thấy <strong>{{ total }}</strong> kết quả cho "<strong>{{ query }}</strong>"
+        {% else %}
+          <strong>{{ total }}</strong> văn bản trong hệ thống
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if results %}
+      {% for item in results %}
+      {% set doc = item.document %}
+      <article class="doc-card">
+        <div class="doc-card-header">
+          <span class="doc-type-badge">{{ doc.doc_type | doc_type_label }}</span>
+          <span class="doc-number">{{ doc.doc_number }}</span>
+          <span class="status-badge {{ doc.effectiveness_status | effectiveness_color }}">
+            {{ doc.effectiveness_status | effectiveness_label }}
+          </span>
+        </div>
+
+        <h2 class="doc-card-title">
+          <a href="/documents/{{ doc.id }}">{{ doc.title }}</a>
+        </h2>
+
+        {% if item.highlight %}
+        <div class="doc-snippet">{{ item.highlight | safe }}</div>
+        {% endif %}
+
+        <div class="doc-card-footer">
+          <div class="doc-meta">
+            {% if doc.issuing_authority %}
+            <span class="doc-meta-item">
+              <span class="icon">🏛</span>{{ doc.issuing_authority }}
+            </span>
+            {% endif %}
+            {% if doc.issuing_date %}
+            <span class="doc-meta-item">
+              <span class="icon">📅</span>{{ doc.issuing_date }}
+            </span>
+            {% endif %}
+          </div>
+          <a href="/documents/{{ doc.id }}" class="view-btn">Xem chi tiết →</a>
+        </div>
+      </article>
+      {% endfor %}
+
+      <!-- PAGINATION -->
+      {% if total > page_size %}
+      <nav class="pagination">
+        {% set total_pages = (total / page_size) | int + (1 if total % page_size else 0) %}
+        {% if page > 1 %}
+        <a href="/search?q={{ query }}&page={{ page - 1 }}{% if filters.doc_type %}&doc_type={{ filters.doc_type }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}" class="page-btn">←</a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+        <a href="/search?q={{ query }}&page={{ p }}{% if filters.doc_type %}&doc_type={{ filters.doc_type }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}" class="page-btn {% if p == page %}active{% endif %}">{{ p }}</a>
+        {% endfor %}
+        {% if page < total_pages %}
+        <a href="/search?q={{ query }}&page={{ page + 1 }}{% if filters.doc_type %}&doc_type={{ filters.doc_type }}{% endif %}{% if filters.status %}&status={{ filters.status }}{% endif %}" class="page-btn">→</a>
+        {% endif %}
+      </nav>
+      {% endif %}
+
+    {% elif query %}
+      <div class="empty-state">
+        <span class="empty-icon">🔍</span>
+        <div class="empty-title">Không tìm thấy kết quả</div>
+        <p class="empty-desc">Thử từ khóa khác hoặc bỏ bớt bộ lọc để mở rộng tìm kiếm.</p>
+      </div>
+
+    {% else %}
+      <!-- Trang chủ chưa tìm kiếm -->
+      <div class="empty-state">
+        <span class="empty-icon">📜</span>
+        <div class="empty-title">Nhập từ khóa để bắt đầu tra cứu</div>
+        <p class="empty-desc">Hỗ trợ tìm theo số hiệu, tiêu đề, nội dung điều khoản, tên cơ quan ban hành.</p>
+      </div>
+    {% endif %}
+  </main>
+</div>
+
+{% endblock %}

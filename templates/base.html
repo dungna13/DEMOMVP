@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Hệ thống Tìm kiếm Văn bản Hành chính Quốc gia — Tra cứu pháp luật Việt Nam nhanh chóng, chính xác." />
+  <title>{% block title %}Tìm kiếm Văn bản Hành chính{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">
+    <div class="brand-icon">⚖</div>
+    <div>
+      <div class="brand-title">Văn bản Hành chính</div>
+      <div class="brand-subtitle">Quốc gia · Phase 1 MVP</div>
+    </div>
+  </a>
+  <div class="navbar-links">
+    <a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Tìm kiếm</a>
+    <a href="/api/documents" target="_blank">Danh sách</a>
+    <a href="/docs" target="_blank" class="api-badge">API Docs</a>
+  </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p>
+    Hệ thống Tìm kiếm Văn bản Hành chính Quốc gia · Phase 1 MVP ·
+    <a href="/docs" target="_blank">REST API</a> ·
+    Dữ liệu: Thủ tướng Chính phủ
+  </p>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}{{ doc.doc_number }} — {{ doc.title[:60] }}{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+
+  <!-- BREADCRUMB -->
+  <nav class="detail-breadcrumb">
+    <a href="/">🏠 Trang chủ</a>
+    <span class="sep">›</span>
+    <a href="/search">Tìm kiếm</a>
+    <span class="sep">›</span>
+    <span>{{ doc.doc_number }}</span>
+  </nav>
+
+  <!-- DOCUMENT HEADER -->
+  <div class="detail-header">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+      <span class="doc-type-badge">{{ doc.doc_type | doc_type_label }}</span>
+      <span class="status-badge {{ doc.effectiveness_status | effectiveness_color }}">
+        {{ doc.effectiveness_status | effectiveness_label }}
+      </span>
+    </div>
+
+    <h1 class="detail-title">{{ doc.title }}</h1>
+
+    <div class="detail-meta-grid">
+      <div class="detail-meta-item">
+        <div class="detail-meta-label">Số hiệu</div>
+        <div class="detail-meta-value">{{ doc.doc_number }}</div>
+      </div>
+      {% if doc.issuing_authority %}
+      <div class="detail-meta-item">
+        <div class="detail-meta-label">Cơ quan ban hành</div>
+        <div class="detail-meta-value">{{ doc.issuing_authority }}</div>
+      </div>
+      {% endif %}
+      {% if doc.issuing_date %}
+      <div class="detail-meta-item">
+        <div class="detail-meta-label">Ngày ban hành</div>
+        <div class="detail-meta-value">{{ doc.issuing_date }}</div>
+      </div>
+      {% endif %}
+      {% if doc.effective_date %}
+      <div class="detail-meta-item">
+        <div class="detail-meta-label">Ngày hiệu lực</div>
+        <div class="detail-meta-value">{{ doc.effective_date }}</div>
+      </div>
+      {% endif %}
+      {% if doc.signer %}
+      <div class="detail-meta-item">
+        <div class="detail-meta-label">Người ký</div>
+        <div class="detail-meta-value">{{ doc.signer }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if doc.summary %}
+    <div style="margin-top:20px;padding:16px;background:rgba(201,168,76,0.07);border-left:3px solid var(--gold-500);border-radius:0 8px 8px 0;">
+      <div style="font-size:11px;color:var(--gold-500);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Tóm tắt nội dung</div>
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;">{{ doc.summary }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- FULL CONTENT / SECTIONS -->
+  <h2 style="font-size:16px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;">
+    📋 Nội dung văn bản
+  </h2>
+
+  {% if chunks %}
+  <div class="doc-sections">
+    {% for chunk in chunks %}
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-number">{{ chunk.dieu if chunk.dieu else loop.index }}</div>
+        <div class="section-title">
+          {% if chunk.dieu and not chunk.khoan %}
+            Điều {{ chunk.dieu }}
+          {% elif chunk.dieu and chunk.khoan %}
+            Điều {{ chunk.dieu }}, Khoản {{ chunk.khoan }}
+          {% else %}
+            Nội dung {{ loop.index }}
+          {% endif %}
+        </div>
+      </div>
+      <div class="section-content">
+        {{ chunk.content }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% elif sections %}
+  <div class="doc-sections">
+    {% for sec in sections %}
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-number">{{ sec.number or loop.index }}</div>
+        <div class="section-title">{{ sec.title or sec.section_type }}</div>
+      </div>
+      {% if sec.content %}
+      <div class="section-content">{{ sec.content }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <span class="empty-icon">📄</span>
+    <div class="empty-title">Không có nội dung chi tiết</div>
+    <p class="empty-desc">Nội dung đang được xử lý hoặc chưa được trích xuất.</p>
+  </div>
+  {% endif %}
+
+  <!-- BACK BUTTON -->
+  <div style="margin-top:32px;display:flex;gap:12px;">
+    <a href="javascript:history.back()" class="view-btn">← Quay lại</a>
+    <a href="/search" class="view-btn">🔍 Tìm kiếm mới</a>
+    <a href="/api/documents/{{ doc.id }}" target="_blank" class="api-badge" style="align-self:center;">JSON</a>
+  </div>
+
+</div>
+{% endblock %}
