@@ -8,9 +8,9 @@
 
 <!-- HERO + SEARCH -->
 <section class="hero">
-  <div class="hero-badge">⚡ Phase 1 MVP · Full-text Search</div>
+  <div class="hero-badge">⚡ Phase 2 · Hybrid Search + RAG AI</div>
   <h1 class="hero-title">Tìm kiếm Văn bản<br/>Hành chính Quốc gia</h1>
-  <p class="hero-subtitle">Tra cứu văn bản quy phạm pháp luật, quyết định hành chính — nhanh chóng, chính xác, đúng hiệu lực.</p>
+  <p class="hero-subtitle">Tra cứu thông minh kết hợp BM25 + Vector Search · Hỏi đáp pháp luật với AI · Quan hệ pháp lý tự động.</p>
 
   <div class="search-wrapper">
     <form id="search-form" action="/search" method="get">
@@ -22,7 +22,7 @@
           type="text"
           name="q"
           value="{{ query }}"
-          placeholder="Nhập số hiệu, tiêu đề, tên cơ quan... (/ để focus)"
+          placeholder="Nhập số hiệu, tiêu đề, hoặc mô tả nội dung cần tìm... (/ để focus)"
           autocomplete="off"
         />
         {% if filters.doc_type %}<input type="hidden" name="doc_type" value="{{ filters.doc_type }}" />{% endif %}
@@ -35,10 +35,10 @@
 
     <div class="search-hints">
       <span class="search-hint-chip">689/QĐ-TTg</span>
-      <span class="search-hint-chip">Hưng Yên</span>
-      <span class="search-hint-chip">Chủ tịch UBND</span>
+      <span class="search-hint-chip">quy định đất đai</span>
       <span class="search-hint-chip">Thủ tướng Chính phủ</span>
       <span class="search-hint-chip">phê chuẩn</span>
+      <a href="/qa" class="search-hint-chip qa-hint-chip">💬 Hỏi đáp AI</a>
     </div>
   </div>
 </section>
@@ -64,8 +64,10 @@
   </div>
   {% endif %}
   <div class="stat-item">
-    <span class="stat-value">BM25</span>
-    <span class="stat-label">Thuật toán</span>
+    <span class="stat-value search-mode-badge">
+      {% if vector_available %}Hybrid{% else %}BM25{% endif %}
+    </span>
+    <span class="stat-label">{% if vector_available %}BM25 + Vector + RRF{% else %}Full-text Search{% endif %}</span>
   </div>
 </div>
 
@@ -160,6 +162,9 @@
       <div class="results-count">
         {% if query %}
           Tìm thấy <strong>{{ total }}</strong> kết quả cho "<strong>{{ query }}</strong>"
+          {% if search_mode and vector_available %}
+          <span class="mode-indicator mode-{{ search_mode }}">{{ search_mode | upper }}</span>
+          {% endif %}
         {% else %}
           <strong>{{ total }}</strong> văn bản trong hệ thống
         {% endif %}
@@ -177,6 +182,13 @@
           <span class="status-badge {{ doc.effectiveness_status | effectiveness_color }}">
             {{ doc.effectiveness_status | effectiveness_label }}
           </span>
+          {% if item.search_sources %}
+          <div class="search-source-tags">
+            {% for src in item.search_sources %}
+            <span class="source-tag source-{{ src | lower }}">{{ src }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
         </div>
 
         <h2 class="doc-card-title">
@@ -226,6 +238,7 @@
         <span class="empty-icon">🔍</span>
         <div class="empty-title">Không tìm thấy kết quả</div>
         <p class="empty-desc">Thử từ khóa khác hoặc bỏ bớt bộ lọc để mở rộng tìm kiếm.</p>
+        <a href="/qa" class="qa-suggest-btn">💬 Thử hỏi AI về "{{ query }}"</a>
       </div>
 
     {% else %}
@@ -234,6 +247,7 @@
         <span class="empty-icon">📜</span>
         <div class="empty-title">Nhập từ khóa để bắt đầu tra cứu</div>
         <p class="empty-desc">Hỗ trợ tìm theo số hiệu, tiêu đề, nội dung điều khoản, tên cơ quan ban hành.</p>
+        <p class="empty-desc" style="margin-top:8px">Hoặc <a href="/qa" style="color:var(--gold-400);font-weight:600">💬 hỏi đáp pháp luật với AI</a></p>
       </div>
     {% endif %}
   </main>

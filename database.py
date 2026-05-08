@@ -1,6 +1,6 @@
 """
-database.py — SQLite + FTS5 setup cho Phase 1 MVP
-Schema theo HLD: documents, doc_sections, chunks + FTS5 virtual table
+database.py — SQLite + FTS5 setup cho Phase 1 + Phase 2
+Schema theo HLD: documents, doc_sections, chunks, doc_relations, doc_legal_fields + FTS5
 """
 
 import sqlite3
@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS documents (
     summary_model        TEXT,
     source_url           TEXT,
     issuing_authority    TEXT,
+    relations_extracted  INTEGER DEFAULT 0,  -- Flag for Phase 2
+    embedding_indexed    INTEGER DEFAULT 0,  -- Flag for Vector Search
     created_at           TEXT DEFAULT (datetime('now')),
     updated_at           TEXT DEFAULT (datetime('now'))
 );
@@ -85,14 +87,47 @@ CREATE TABLE IF NOT EXISTS chunks (
     chuong       INTEGER
 );
 
+-- ========== PHASE 2: QUAN HỆ PHÁP LÝ ==========
+
+CREATE TABLE IF NOT EXISTS doc_relations (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_doc_id    INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    target_doc_id    INTEGER REFERENCES documents(id),
+    target_doc_number TEXT,
+    relation_type    TEXT NOT NULL,  -- thay_the, sua_doi, huong_dan, bai_bo, vien_dan, dinh_chinh
+    source_section   TEXT,
+    target_section   TEXT,
+    detected_by      TEXT DEFAULT 'regex',  -- regex / llm / manual
+    confidence       REAL DEFAULT 1.0,
+    created_at       TEXT DEFAULT (datetime('now'))
+);
+
+-- ========== PHASE 2: LĨNH VỰC PHÁP LÝ ==========
+
+CREATE TABLE IF NOT EXISTS doc_legal_fields (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    document_id  INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    field_name   TEXT NOT NULL,
+    confidence   REAL DEFAULT 1.0,
+    source       TEXT DEFAULT 'auto',  -- auto / manual
+    model        TEXT,
+    created_at   TEXT DEFAULT (datetime('now'))
+);
+
 -- ========== INDEXES ==========
 
 CREATE INDEX IF NOT EXISTS idx_docs_number          ON documents(doc_number);
 CREATE INDEX IF NOT EXISTS idx_docs_type            ON documents(doc_type);
 CREATE INDEX IF NOT EXISTS idx_docs_effectiveness   ON documents(effectiveness_status);
 CREATE INDEX IF NOT EXISTS idx_docs_effective_date  ON documents(issuing_date);
+CREATE INDEX IF NOT EXISTS idx_docs_hash            ON documents(file_hash);
 CREATE INDEX IF NOT EXISTS idx_sections_doc_type    ON doc_sections(document_id, section_type);
 CREATE INDEX IF NOT EXISTS idx_chunks_doc           ON chunks(document_id);
+CREATE INDEX IF NOT EXISTS idx_relations_source     ON doc_relations(source_doc_id);
+CREATE INDEX IF NOT EXISTS idx_relations_target     ON doc_relations(target_doc_id);
+CREATE INDEX IF NOT EXISTS idx_relations_type       ON doc_relations(relation_type);
+CREATE INDEX IF NOT EXISTS idx_legal_fields_doc     ON doc_legal_fields(document_id);
+CREATE INDEX IF NOT EXISTS idx_legal_fields_name    ON doc_legal_fields(field_name);
 
 -- ========== FTS5 FULL-TEXT SEARCH ==========
 -- Simulate BM25 — SQLite FTS5 dùng BM25 ranking mặc định
@@ -150,11 +185,21 @@ END;
 
 
 def init_db():
-    """Khởi tạo schema nếu chưa có."""
+    """Khởi tạo schema nếu chưa có (Phase 1 + Phase 2)."""
     conn = get_connection()
     try:
         conn.executescript(SCHEMA_SQL)
-        print("[DB] Schema ready.")
+        
+        # Cập nhật schema cho database cũ (nếu thiếu cột)
+        try:
+            conn.execute("ALTER TABLE documents ADD COLUMN relations_extracted INTEGER DEFAULT 0")
+        except sqlite3.OperationalError: pass # Cột đã tồn tại
+
+        try:
+            conn.execute("ALTER TABLE documents ADD COLUMN embedding_indexed INTEGER DEFAULT 0")
+        except sqlite3.OperationalError: pass # Cột đã tồn tại
+
+        print("[DB] Schema ready (Phase 1 + Phase 2).")
     finally:
         conn.close()
 

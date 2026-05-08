@@ -1,0 +1,26 @@
+# Environment variables
+.env
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Vector store
+qdrant_data/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs
+.vscode/
+.idea/
+
+# Large binaries
+ngrok.exe
+
+# OS files
+.DS_Store
+Thumbs.db

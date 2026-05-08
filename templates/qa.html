@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Hỏi đáp Pháp luật — AI Assistant{% endblock %}
+
+{% block content %}
+<div class="qa-container">
+
+  <div class="qa-header">
+    <div class="qa-header-badge">💬 RAG · Retrieval-Augmented Generation</div>
+    <h1 class="qa-title">Hỏi đáp Pháp luật</h1>
+    <p class="qa-subtitle">
+      Đặt câu hỏi về quy định pháp luật — AI sẽ tìm kiếm và trích dẫn chính xác từ các văn bản trong hệ thống.
+    </p>
+    {% if not ai_available %}
+    <div class="qa-warning">
+      ⚠️ AI chưa được cấu hình. Hệ thống sẽ hiển thị các đoạn văn bản liên quan thay vì câu trả lời tổng hợp.
+      <br/>Cấu hình API key (OPENAI_API_KEY) trong <code>config.py</code> hoặc biến môi trường để kích hoạt.
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- CHAT AREA -->
+  <div class="qa-chat-area" id="qa-chat-area">
+    <div class="qa-welcome" id="qa-welcome">
+      <div class="qa-welcome-icon">⚖️</div>
+      <h2>Xin chào! Tôi có thể giúp gì?</h2>
+      <p>Hãy đặt câu hỏi về quy định pháp luật Việt Nam. Tôi sẽ tìm kiếm trong cơ sở dữ liệu và trả lời kèm trích dẫn.</p>
+
+      <div class="qa-suggestions">
+        <div class="qa-suggestions-title">Câu hỏi gợi ý:</div>
+        {% for q in suggested_questions %}
+        <button class="qa-suggestion-chip" onclick="askSuggestion(this)">{{ q }}</button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="qa-messages" id="qa-messages"></div>
+  </div>
+
+  <!-- INPUT AREA -->
+  <div class="qa-input-area">
+    <div class="qa-input-wrapper">
+      <textarea
+        id="qa-input"
+        class="qa-input"
+        placeholder="Nhập câu hỏi pháp luật..."
+        rows="1"
+        maxlength="2000"
+      ></textarea>
+      <button id="qa-send-btn" class="qa-send-btn" onclick="sendQuestion()">
+        <span class="qa-send-icon">➤</span>
+      </button>
+    </div>
+    <div class="qa-input-hint">
+      Nhấn Enter để gửi · Shift+Enter để xuống dòng · Câu trả lời dựa trên văn bản trong hệ thống
+    </div>
+  </div>
+
+</div>
+
+<script>
+const chatArea = document.getElementById('qa-chat-area');
+const messagesDiv = document.getElementById('qa-messages');
+const welcomeDiv = document.getElementById('qa-welcome');
+const inputEl = document.getElementById('qa-input');
+const sendBtn = document.getElementById('qa-send-btn');
+
+let chatHistory = [];
+let isLoading = false;
+
+// Auto-resize textarea
+inputEl.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// Enter to send, Shift+Enter for newline
+inputEl.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendQuestion();
+  }
+});
+
+function askSuggestion(btn) {
+  inputEl.value = btn.textContent.trim();
+  sendQuestion();
+}
+
+function addMessage(role, content, citations) {
+  if (welcomeDiv) welcomeDiv.style.display = 'none';
+
+  const msg = document.createElement('div');
+  msg.className = `qa-message qa-message-${role}`;
+
+  if (role === 'user') {
+    msg.innerHTML = `
+      <div class="qa-message-avatar">👤</div>
+      <div class="qa-message-content">
+        <div class="qa-message-text">${escapeHtml(content)}</div>
+      </div>`;
+  } else {
+    // Parse markdown-like formatting
+    let formatted = formatAnswer(content);
+
+    let citationsHtml = '';
+    if (citations && citations.length > 0) {
+      citationsHtml = '<div class="qa-citations"><div class="qa-citations-title">📎 Nguồn tham khảo:</div>';
+      citations.forEach(c => {
+        const link = c.doc_id ? `<a href="/documents/${c.doc_id}" target="_blank">` : '<span>';
+        const linkEnd = c.doc_id ? '</a>' : '</span>';
+        citationsHtml += `
+          <div class="qa-citation-item">
+            <span class="qa-citation-idx">[${c.index}]</span>
+            ${link}${c.doc_number || 'Văn bản'}${c.dieu ? ' — Điều ' + c.dieu : ''}${c.khoan ? ', Khoản ' + c.khoan : ''}${linkEnd}
+            <span class="qa-citation-title">${c.doc_title ? c.doc_title.substring(0, 80) : ''}</span>
+          </div>`;
+      });
+      citationsHtml += '</div>';
+    }
+
+    msg.innerHTML = `
+      <div class="qa-message-avatar">⚖️</div>
+      <div class="qa-message-content">
+        <div class="qa-message-text">${formatted}</div>
+        ${citationsHtml}
+      </div>`;
+  }
+
+  messagesDiv.appendChild(msg);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function addLoadingMessage() {
+  const msg = document.createElement('div');
+  msg.className = 'qa-message qa-message-assistant qa-loading-msg';
+  msg.innerHTML = `
+    <div class="qa-message-avatar">⚖️</div>
+    <div class="qa-message-content">
+      <div class="qa-loading-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="qa-loading-text">Đang tìm kiếm và phân tích...</div>
+    </div>`;
+  messagesDiv.appendChild(msg);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  return msg;
+}
+
+async function sendQuestion() {
+  const question = inputEl.value.trim();
+  if (!question || isLoading) return;
+
+  isLoading = true;
+  sendBtn.disabled = true;
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+
+  addMessage('user', question);
+  const loadingMsg = addLoadingMessage();
+
+  try {
+    const resp = await fetch('/api/qa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question: question,
+        chat_history: chatHistory.slice(-4),
+      }),
+    });
+
+    const data = await resp.json();
+    loadingMsg.remove();
+
+    if (data.error) {
+      addMessage('assistant', '❌ Lỗi: ' + data.error);
+    } else {
+      addMessage('assistant', data.answer, data.citations);
+      chatHistory.push({ role: 'user', content: question });
+      chatHistory.push({ role: 'assistant', content: data.answer });
+    }
+  } catch (err) {
+    loadingMsg.remove();
+    addMessage('assistant', '❌ Lỗi kết nối. Vui lòng thử lại.');
+  }
+
+  isLoading = false;
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatAnswer(text) {
+  // Basic markdown-like formatting
+  let html = escapeHtml(text);
+  // Bold
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  // Citation references
+  html = html.replace(/\[(\d+)\]/g, '<span class="qa-ref">[$1]</span>');
+  // Line breaks
+  html = html.replace(/\n/g, '<br/>');
+  // Headers (##)
+  html = html.replace(/## (.*?)(<br\/>|$)/g, '<h4 class="qa-h4">$1</h4>');
+  // Bullet points
+  html = html.replace(/- (.*?)(<br\/>|$)/g, '<li>$1</li>');
+
+  return html;
+}
+</script>
+
+{% endblock %}

@@ -21,6 +21,9 @@
       <span class="status-badge {{ doc.effectiveness_status | effectiveness_color }}">
         {{ doc.effectiveness_status | effectiveness_label }}
       </span>
+      {% for field in legal_fields %}
+      <span class="field-badge">{{ field.field_name }}</span>
+      {% endfor %}
     </div>
 
     <h1 class="detail-title">{{ doc.title }}</h1>
@@ -64,8 +67,75 @@
     {% endif %}
   </div>
 
+  <!-- PHASE 2: LEGAL RELATIONS -->
+  {% if relations and (relations.outgoing or relations.incoming) %}
+  <div class="relations-section">
+    <h2 class="section-heading">
+      🔗 Quan hệ pháp lý
+      <span class="section-count">{{ (relations.outgoing | length) + (relations.incoming | length) }}</span>
+    </h2>
+
+    {% if relations.outgoing %}
+    <div class="relation-group">
+      <h3 class="relation-group-title">Văn bản này tham chiếu đến:</h3>
+      <div class="relation-cards">
+        {% for rel in relations.outgoing %}
+        <div class="relation-card relation-{{ rel.relation_type }}">
+          <div class="relation-card-header">
+            <span class="relation-type-badge">
+              {{ rel.relation_type | relation_icon }} {{ rel.relation_type | relation_label }}
+            </span>
+            {% if rel.confidence < 1.0 %}
+            <span class="confidence-badge">{{ "%.0f" | format(rel.confidence * 100) }}%</span>
+            {% endif %}
+          </div>
+          <div class="relation-card-body">
+            {% if rel.target_doc_id %}
+            <a href="/documents/{{ rel.target_doc_id }}" class="relation-doc-link">
+              {{ rel.target_title or rel.target_doc_number or 'Văn bản liên quan' }}
+            </a>
+            {% else %}
+            <span class="relation-doc-ref">{{ rel.target_doc_number }}</span>
+            {% endif %}
+            {% if rel.source_section %}
+            <span class="relation-section">{{ rel.source_section }}</span>
+            {% endif %}
+          </div>
+          <div class="relation-card-meta">
+            <span class="detected-by">{{ rel.detected_by }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if relations.incoming %}
+    <div class="relation-group">
+      <h3 class="relation-group-title">Văn bản tham chiếu đến văn bản này:</h3>
+      <div class="relation-cards">
+        {% for rel in relations.incoming %}
+        <div class="relation-card relation-incoming">
+          <div class="relation-card-header">
+            <span class="relation-type-badge">
+              {{ rel.relation_type | relation_icon }} {{ rel.relation_type | relation_label }}
+            </span>
+          </div>
+          <div class="relation-card-body">
+            <a href="/documents/{{ rel.source_doc_id }}" class="relation-doc-link">
+              {{ rel.source_title or rel.source_doc_number or 'Văn bản liên quan' }}
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
   <!-- FULL CONTENT / SECTIONS -->
-  <h2 style="font-size:16px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;">
+  <h2 class="section-heading">
     📋 Nội dung văn bản
   </h2>
 
@@ -115,11 +185,36 @@
   </div>
   {% endif %}
 
+  <!-- PHASE 2: SIMILAR DOCUMENTS -->
+  {% if similar_docs %}
+  <div class="similar-section">
+    <h2 class="section-heading">
+      🔄 Văn bản tương tự
+      <span class="section-count">{{ similar_docs | length }}</span>
+    </h2>
+    <div class="similar-cards">
+      {% for item in similar_docs %}
+      {% set sdoc = item.document %}
+      <a href="/documents/{{ sdoc.id }}" class="similar-card">
+        <span class="doc-type-badge" style="font-size:10px;padding:2px 8px;">{{ sdoc.doc_type | doc_type_label }}</span>
+        <div class="similar-title">{{ sdoc.title[:100] }}{% if sdoc.title | length > 100 %}...{% endif %}</div>
+        <div class="similar-meta">
+          <span>{{ sdoc.doc_number }}</span>
+          <span class="similarity-score">{{ "%.0f" | format(item.similarity * 100) }}% tương tự</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <!-- BACK BUTTON -->
-  <div style="margin-top:32px;display:flex;gap:12px;">
+  <div style="margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;">
     <a href="javascript:history.back()" class="view-btn">← Quay lại</a>
     <a href="/search" class="view-btn">🔍 Tìm kiếm mới</a>
+    <a href="/qa" class="view-btn">💬 Hỏi đáp AI</a>
     <a href="/api/documents/{{ doc.id }}" target="_blank" class="api-badge" style="align-self:center;">JSON</a>
+    <a href="/api/documents/{{ doc.id }}/relations" target="_blank" class="api-badge" style="align-self:center;">Relations</a>
   </div>
 
 </div>
