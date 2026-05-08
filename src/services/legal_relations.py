@@ -8,7 +8,7 @@ import re
 import json
 import logging
 from typing import List, Dict, Optional, Tuple
-from database import get_db
+from src.database.database import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,7 @@ def extract_relations_llm(content: str, source_doc_number: str) -> List[Dict]:
     Trích xuất quan hệ pháp lý bằng LLM (cho trường hợp phức tạp).
     Fallback khi regex không đủ.
     """
-    from ai_service import _call_llm, is_ai_available
+    from src.core.ai_service import _call_llm, is_ai_available
 
     if not is_ai_available():
         return []
@@ -221,7 +221,7 @@ def extract_and_store_relations(doc_id: int) -> int:
 
 def get_document_relations(doc_id: int) -> Dict:
     """Lấy tất cả quan hệ pháp lý của 1 văn bản."""
-    from config import RELATION_TYPES
+    from src.config import RELATION_TYPES
 
     with get_db() as conn:
         # Quan hệ xuất phát từ văn bản này

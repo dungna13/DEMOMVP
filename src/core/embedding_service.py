@@ -20,7 +20,7 @@ def _get_model():
     global _model
     if _model is None:
         from sentence_transformers import SentenceTransformer
-        from config import EMBEDDING_MODEL, EMBEDDING_DEVICE
+        from src.config import EMBEDDING_MODEL, EMBEDDING_DEVICE
         logger.info(f"[Embedding] Loading model: {EMBEDDING_MODEL}")
         _model = SentenceTransformer(EMBEDDING_MODEL, device=EMBEDDING_DEVICE)
         logger.info(f"[Embedding] Model loaded. Dim={_model.get_sentence_embedding_dimension()}")
@@ -33,7 +33,7 @@ def _get_qdrant():
     if _qdrant_client is None:
         from qdrant_client import QdrantClient
         from qdrant_client.models import Distance, VectorParams
-        from config import QDRANT_MODE, QDRANT_URL, QDRANT_PATH, QDRANT_COLLECTION, EMBEDDING_DIM
+        from src.config import QDRANT_MODE, QDRANT_URL, QDRANT_PATH, QDRANT_COLLECTION, EMBEDDING_DIM
 
         if QDRANT_MODE == "memory":
             _qdrant_client = QdrantClient(":memory:")
@@ -87,8 +87,8 @@ def index_chunks(chunks: List[Dict[str, Any]], doc_ids_to_mark: Optional[List[in
         return 0
 
     from qdrant_client.models import PointStruct
-    from config import QDRANT_COLLECTION
-    from database import get_db
+    from src.config import QDRANT_COLLECTION
+    from src.database.database import get_db
 
     client = _get_qdrant()
 
@@ -148,7 +148,7 @@ def vector_search(
     Returns: list of {id, score, payload}
     """
     from qdrant_client.models import Filter, FieldCondition, MatchValue
-    from config import QDRANT_COLLECTION
+    from src.config import QDRANT_COLLECTION
 
     client = _get_qdrant()
     query_vector = encode_query(query)
@@ -188,7 +188,7 @@ def vector_search(
 
 def get_collection_info() -> Dict:
     """Trả về thông tin collection (số points, etc.)."""
-    from config import QDRANT_COLLECTION
+    from src.config import QDRANT_COLLECTION
     try:
         client = _get_qdrant()
         info = client.get_collection(QDRANT_COLLECTION)
@@ -206,8 +206,8 @@ def reindex_all_chunks():
     """
     Đọc chunks của các văn bản CHƯA index từ SQLite → Qdrant.
     """
-    from database import get_db
-    from config import QDRANT_MODE
+    from src.database.database import get_db
+    from src.config import QDRANT_MODE
     
     # Nếu dùng memory mode, Qdrant bị reset mỗi khi restart
     # Nên ta phải re-index TOÀN BỘ nếu count trong Qdrant = 0

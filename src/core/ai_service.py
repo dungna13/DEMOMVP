@@ -8,7 +8,7 @@ import json
 import logging
 from typing import List, Dict, Optional, Any
 
-from config import (
+from src.config import (
     LLM_MODEL, LLM_API_KEY, ANTHROPIC_API_KEY,
     LEGAL_FIELDS, AUTO_TAG_CONFIDENCE_THRESHOLD,
     RAG_TEMPERATURE,

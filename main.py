@@ -13,10 +13,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from typing import Optional
 
-from database import init_db
-from ingestion import seed_if_empty
-from search import search_documents, get_document_detail, list_documents
-from models import (
+from src.database.database import init_db, get_db
+from src.services.ingestion import seed_if_empty
+from src.services.search import search_documents, get_document_detail, list_documents
+from src.database.models import (
     DOC_TYPE_LABELS, EFFECTIVENESS_LABELS, EFFECTIVENESS_COLORS,
     RELATION_TYPE_LABELS, RELATION_TYPE_ICONS,
 )
@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
         
         # 1. Build vector index
         try:
-            from embedding_service import reindex_all_chunks
+            from src.core.embedding_service import reindex_all_chunks
             count = await asyncio.to_thread(reindex_all_chunks)
             _vector_indexed = count > 0
             logger.info(f"[Background] Vector index built: {count} chunks")
@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
 
         # 2. Extract legal relations
         try:
-            from legal_relations import extract_all_relations
+            from src.services.legal_relations import extract_all_relations
             rel_count = await asyncio.to_thread(extract_all_relations)
             logger.info(f"[Background] Extracted {rel_count} legal relations")
         except Exception as e:
@@ -126,7 +126,7 @@ async def search_page(
     if _vector_indexed and q:
         # Phase 2: Hybrid Search (BM25 + Vector + RRF)
         try:
-            from vector_search import hybrid_search
+            from src.core.vector_search import hybrid_search
             result = hybrid_search(
                 query=q,
                 doc_type=doc_type,
@@ -181,7 +181,7 @@ async def document_detail(request: Request, doc_id: int):
     # Phase 2: Lấy quan hệ pháp lý
     relations = {"outgoing": [], "incoming": [], "relation_labels": RELATION_TYPE_LABELS}
     try:
-        from legal_relations import get_document_relations
+        from src.services.legal_relations import get_document_relations
         relations = get_document_relations(doc_id)
     except Exception as e:
         logger.warning(f"[Detail] Relations failed: {e}")
@@ -189,7 +189,7 @@ async def document_detail(request: Request, doc_id: int):
     # Phase 2: Lấy văn bản tương tự
     similar = []
     try:
-        from vector_search import get_similar_documents
+        from src.core.vector_search import get_similar_documents
         similar = get_similar_documents(doc_id, top_k=5)
     except Exception:
         pass
@@ -225,8 +225,8 @@ async def document_detail(request: Request, doc_id: int):
 @app.get("/qa", response_class=HTMLResponse)
 async def qa_page(request: Request):
     """Trang hỏi đáp pháp luật (RAG Q&A)."""
-    from rag_engine import get_suggested_questions
-    from ai_service import is_ai_available
+    from src.core.rag_engine import get_suggested_questions
+    from src.core.ai_service import is_ai_available
 
     return templates.TemplateResponse("qa.html", {
         "request": request,
@@ -251,7 +251,7 @@ async def api_search(
     """REST API: Tìm kiếm văn bản — Hybrid Search."""
     if _vector_indexed and q:
         try:
-            from vector_search import hybrid_search
+            from src.core.vector_search import hybrid_search
             result = hybrid_search(
                 query=q, doc_type=doc_type, issuing_authority=authority,
                 year=year, effectiveness_status=status,
@@ -288,7 +288,7 @@ async def api_document_detail(doc_id: int):
 async def api_document_relations(doc_id: int):
     """REST API: Quan hệ pháp lý của 1 văn bản."""
     try:
-        from legal_relations import get_document_relations
+        from src.services.legal_relations import get_document_relations
         return JSONResponse(content=get_document_relations(doc_id))
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
@@ -298,7 +298,7 @@ async def api_document_relations(doc_id: int):
 async def api_similar_documents(doc_id: int, top_k: int = 5):
     """REST API: Văn bản tương tự."""
     try:
-        from vector_search import get_similar_documents
+        from src.core.vector_search import get_similar_documents
         results = get_similar_documents(doc_id, top_k=top_k)
         return JSONResponse(content={"similar": results})
     except Exception as e:
@@ -316,7 +316,7 @@ async def api_qa(request: Request):
         if not question.strip():
             return JSONResponse({"error": "Câu hỏi không được để trống"}, status_code=400)
 
-        from rag_engine import ask_question
+        from src.core.rag_engine import ask_question
         result = ask_question(question=question, chat_history=chat_history)
         return JSONResponse(content=result)
     except Exception as e:
@@ -327,12 +327,12 @@ async def api_qa(request: Request):
 @app.post("/api/ingest")
 async def api_ingest():
     """REST API: Trigger nạp lại dữ liệu từ thư mục data/."""
-    from ingestion import ingest_all
+    from src.services.ingestion import ingest_all
     ingest_all()
 
     # Rebuild vector index
     try:
-        from embedding_service import reindex_all_chunks
+        from src.core.embedding_service import reindex_all_chunks
         count = reindex_all_chunks()
         global _vector_indexed
         _vector_indexed = count > 0
@@ -341,7 +341,7 @@ async def api_ingest():
 
     # Re-extract relations
     try:
-        from legal_relations import extract_all_relations
+        from src.services.legal_relations import extract_all_relations
         extract_all_relations()
     except Exception:
         pass
@@ -353,7 +353,7 @@ async def api_ingest():
 async def api_vector_info():
     """REST API: Thông tin vector index."""
     try:
-        from embedding_service import get_collection_info
+        from src.core.embedding_service import get_collection_info
         return JSONResponse(content=get_collection_info())
     except Exception as e:
         return JSONResponse({"error": str(e), "vector_indexed": _vector_indexed})
@@ -362,8 +362,8 @@ async def api_vector_info():
 @app.get("/api/system-status")
 async def api_system_status():
     """REST API: Trạng thái hệ thống."""
-    from ai_service import is_ai_available
-    from database import get_db
+    from src.core.ai_service import is_ai_available
+    from src.database.database import get_db
 
     with get_db() as conn:
         doc_count = conn.execute("SELECT COUNT(*) as cnt FROM documents").fetchone()["cnt"]

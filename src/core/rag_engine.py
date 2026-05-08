@@ -5,8 +5,8 @@ Retrieve → Re-rank → Generate Answer with Citations
 
 import logging
 from typing import List, Dict, Optional, Any
-from database import get_db
-from config import RAG_TOP_K_RETRIEVE, RAG_TOP_K_CONTEXT
+from src.database.database import get_db
+from src.config import RAG_TOP_K_RETRIEVE, RAG_TOP_K_CONTEXT
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ def retrieve_context(
 
     # ── 1. Vector Search (nếu có) ──
     try:
-        from embedding_service import vector_search as qdrant_search
+        from src.core.embedding_service import vector_search as qdrant_search
         vector_results = qdrant_search(query=question, top_k=top_k)
         for result in vector_results:
             payload = result["payload"]
@@ -42,7 +42,7 @@ def retrieve_context(
 
     # ── 2. FTS5 Chunk Search ──
     try:
-        from search import _build_fts_query
+        from src.services.search import _build_fts_query
         fts_q = _build_fts_query(question)
         with get_db() as conn:
             rows = conn.execute("""
@@ -125,7 +125,7 @@ def rerank_chunks(question: str, chunks: List[Dict], top_k: int = RAG_TOP_K_CONT
         return []
 
     # Simple re-ranking: ưu tiên văn bản còn hiệu lực
-    from config import EFFECTIVENESS_BOOST
+    from src.config import EFFECTIVENESS_BOOST
 
     for chunk in chunks:
         base_score = chunk.get("score", 0)
@@ -167,7 +167,7 @@ def ask_question(
     3. Re-rank
     4. Generate answer with citations
     """
-    from ai_service import generate_qa_answer, is_ai_available
+    from src.core.ai_service import generate_qa_answer, is_ai_available
 
     # Step 1: Retrieve
     raw_chunks = retrieve_context(question, top_k=top_k_retrieve)

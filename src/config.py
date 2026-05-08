@@ -44,7 +44,7 @@ EMBEDDING_DEVICE = os.getenv("EMBEDDING_DEVICE", "cpu")  # cpu | cuda
 # - 'local' : Lưu trên ổ cứng (vĩnh viễn, không phải index lại khi restart)
 # - 'server': Kết nối tới Qdrant Server (Docker/Cloud)
 QDRANT_MODE = os.getenv("QDRANT_MODE", "local")  # Chuyển sang 'local' để giữ dữ liệu
-QDRANT_PATH = os.path.join(os.path.dirname(__file__), "qdrant_data")
+QDRANT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "qdrant_data")
 QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 QDRANT_COLLECTION = "vanban_chunks"
 

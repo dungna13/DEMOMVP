@@ -7,7 +7,7 @@ import sqlite3
 import os
 from contextlib import contextmanager
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "vanban.db")
+DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "vanban.db")
 
 
 def get_connection() -> sqlite3.Connection:

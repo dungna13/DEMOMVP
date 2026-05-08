@@ -5,8 +5,8 @@ Kết hợp full-text search từ FTS5 và vector search từ Qdrant
 
 import logging
 from typing import Optional, List, Dict, Any
-from config import RRF_K, RRF_WEIGHTS, EFFECTIVENESS_BOOST
-from database import get_db
+from src.config import RRF_K, RRF_WEIGHTS, EFFECTIVENESS_BOOST
+from src.database.database import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ def _fts5_search(
     Returns: list of {doc_id, rank, document_data}
     """
     import re
-    from search import _build_fts_query
+    from src.services.search import _build_fts_query
 
     with get_db() as conn:
         filters = []
@@ -111,7 +111,7 @@ def _vector_search_by_doc(
     Returns: list of {doc_id, rank, vector_score, top_chunk}
     """
     try:
-        from embedding_service import vector_search as qdrant_search
+        from src.core.embedding_service import vector_search as qdrant_search
 
         chunk_results = qdrant_search(
             query=query,
@@ -158,13 +158,13 @@ def hybrid_search(
     Hybrid Search: BM25 + Vector + RRF Fusion.
     Theo HLD Section 7.4.
     """
-    from search import _highlight, _get_facets
+    from src.services.search import _highlight, _get_facets
 
     offset = (page - 1) * page_size
     q = query.strip()
     if not q:
         # Không có query → trả về tất cả (sắp xếp theo ngày)
-        from search import search_documents
+        from src.services.search import search_documents
         return search_documents(
             query="", doc_type=doc_type, issuing_authority=issuing_authority,
             year=year, effectiveness_status=effectiveness_status,
@@ -289,7 +289,7 @@ def get_similar_documents(doc_id: int, top_k: int = 5) -> List[Dict]:
         return []
 
     try:
-        from embedding_service import vector_search as qdrant_search
+        from src.core.embedding_service import vector_search as qdrant_search
         results = qdrant_search(query=query_text, top_k=top_k * 3)
 
         # Nhóm theo doc, loại bỏ chính nó

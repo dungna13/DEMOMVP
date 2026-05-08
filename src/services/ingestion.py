@@ -9,10 +9,10 @@ import glob
 import re
 import hashlib
 from collections import defaultdict
-from database import get_db, is_empty
+from src.database.database import get_db, is_empty
 
-CHUNKS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "chunks"))
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+CHUNKS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "chunks"))
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 
 def parse_doc_type(doc_number: str) -> str:
     n = doc_number.upper()

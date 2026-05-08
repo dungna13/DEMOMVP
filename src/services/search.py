@@ -5,7 +5,7 @@ Phase 1: BM25 ranking, snippet highlight, facet counts
 
 import re
 from typing import Optional, List, Dict, Any
-from database import get_db
+from src.database.database import get_db
 
 
 # ========== EFFECTIVENESS BOOST (theo HLD) ==========
