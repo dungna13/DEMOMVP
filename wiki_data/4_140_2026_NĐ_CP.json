@@ -1,0 +1,25 @@
+{
+  "source_id": "wiki_4",
+  "document_number": "140/2026/NĐ-CP",
+  "title": "Cong van 140/2026/NĐ-CP: Người ký: .04.2026 14:59:08 +07.00 CHÍNH PHỦ TTAT CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập 2 Tự do Hanh phúc Hà Nội, ngày 16 tháng 4 năm 2026 Số:140...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 140/2026/NĐ-CP ngày 16/04/2026. Nội dung: # Van ban so 140/2026/NĐ-CP Người ký: .04.2026 14:59:08 +07.00 CHÍNH PHỦ TTAT CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập 2 Tự do Hanh phúc Hà Nội, ngày 16 tháng 4 năm 2026 Số:140/2026/NĐ-CP CONG THQNG TINDIWN TỦCHÍNH PHỦ NGg ĐỊNH ĐẾN Già: Về Báo cáo tài chính nhà nước Ngdy: 2414.1.20.26_ 88888 Cẵn cỉ Luật Tổ chức Chính_ phù số 63/2025/QH15; Căn cứ Luật Tổ chức chính quyền địa phương số 72/2025/QH1...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "16/04/2026",
+        "effective": "16/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.224858"
+}

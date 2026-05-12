@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Knowledge Wiki — Văn bản Hành chính{% endblock %}
+
+{% block head %}
+<style>
+.wiki-hero {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f2442 50%, #1a3a5c 100%);
+  padding: 2.5rem 2rem 2rem;
+  color: #fff;
+  border-bottom: 2px solid #2a5298;
+}
+.wiki-hero h1 { font-size: 2rem; margin: 0 0 0.5rem; }
+.wiki-hero p  { opacity: 0.8; margin: 0 0 1.5rem; }
+.wiki-stats { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.stat-card {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 0.8rem 1.4rem;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.15);
+  min-width: 110px;
+}
+.stat-card .num { font-size: 1.7rem; font-weight: 700; color: #64b5f6; }
+.stat-card .lbl { font-size: 0.78rem; opacity: 0.75; }
+.wiki-toolbar {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 2rem;
+  background: #f8faff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+.wiki-toolbar h2 { margin: 0; font-size: 1rem; color: #334; flex: 1; }
+.btn-compile {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  color: #fff; border: none; border-radius: 8px;
+  padding: 0.5rem 1.1rem; cursor: pointer; font-size: 0.88rem;
+  display: flex; align-items: center; gap: 0.4rem;
+  transition: opacity 0.2s;
+}
+.btn-compile:hover { opacity: 0.85; }
+.btn-lint {
+  background: #fff;
+  color: #555; border: 1px solid #ddd; border-radius: 8px;
+  padding: 0.5rem 1rem; cursor: pointer; font-size: 0.88rem;
+}
+.wiki-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.2rem;
+  padding: 1.5rem 2rem;
+}
+.wiki-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e8edf5;
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 0.15s, box-shadow 0.15s;
+  text-decoration: none; color: inherit; display: block;
+}
+.wiki-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(25,118,210,0.12); }
+.wiki-card-header { display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 0.7rem; }
+.wiki-icon { font-size: 1.6rem; flex-shrink: 0; }
+.wiki-card-title { font-size: 0.95rem; font-weight: 600; color: #1a2d4d; line-height: 1.4; }
+.wiki-card-num { font-size: 0.78rem; color: #1976d2; margin-top: 0.2rem; }
+.wiki-card-summary { font-size: 0.83rem; color: #555; line-height: 1.55; margin-bottom: 0.8rem; }
+.wiki-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.wiki-tag {
+  background: #e3f0ff; color: #1565c0;
+  padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.72rem; font-weight: 500;
+}
+.wiki-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 0.8rem; }
+.lint-ok   { color: #388e3c; font-size: 0.75rem; }
+.lint-warn { color: #f57c00; font-size: 0.75rem; }
+.lint-error{ color: #d32f2f; font-size: 0.75rem; }
+.review-badge {
+  background: #e8f5e9; color: #2e7d32;
+  padding: 0.15rem 0.5rem; border-radius: 10px; font-size: 0.72rem;
+}
+.empty-state { text-align: center; padding: 4rem 2rem; color: #888; }
+.empty-state .emoji { font-size: 3rem; margin-bottom: 1rem; }
+#compile-status { padding: 0.4rem 1rem; background: #e3f0ff; border-radius: 8px; font-size: 0.85rem; display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wiki-hero">
+  <h1>📖 Knowledge Wiki</h1>
+  <p>Tri thức pháp luật đã được biên dịch bởi AI theo chuẩn Obsidian Vault</p>
+  <div class="wiki-stats">
+    <div class="stat-card">
+      <div class="num">{{ status.total_documents }}</div>
+      <div class="lbl">Văn bản</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ status.wiki_pages }}</div>
+      <div class="lbl">Wiki Pages</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ status.reviewed }}</div>
+      <div class="lbl">Đã review</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ status.wiki_compiled }}</div>
+      <div class="lbl">Đã biên dịch</div>
+    </div>
+    {% if status.lint_issues > 0 %}
+    <div class="stat-card">
+      <div class="num" style="color:#ff8a65;">{{ status.lint_issues }}</div>
+      <div class="lbl">Lint issues</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="wiki-toolbar">
+  <h2>{{ total }} trang wiki {% if field_filter %} — lọc theo: <em>{{ field_filter }}</em>{% endif %}</h2>
+  <span id="compile-status">⏳ Đang biên dịch...</span>
+  <button class="btn-lint" onclick="runLint()" title="Kiểm tra tính nhất quán wiki">🔍 Lint Wiki</button>
+  <button class="btn-compile" onclick="compileWiki()" id="btn-compile">
+    ⚡ Biên dịch Wiki
+  </button>
+</div>
+
+{% if wiki_pages %}
+<div class="wiki-grid">
+  {% for page in wiki_pages %}
+  <a href="/wiki/{{ page.slug }}" class="wiki-card">
+    <div class="wiki-card-header">
+      <div class="wiki-icon">📄</div>
+      <div>
+        <div class="wiki-card-title">{{ page.title[:80] }}</div>
+        <div class="wiki-card-num">{{ page.doc_number }}</div>
+      </div>
+    </div>
+    {% if page.summary %}
+    <div class="wiki-card-summary">{{ page.summary[:200] }}…</div>
+    {% endif %}
+    {% if page.legal_fields %}
+    <div class="wiki-tags">
+      {% for f in page.legal_fields[:3] %}
+      <span class="wiki-tag">{{ f }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="wiki-footer">
+      {% if page.lint_status == 'ok' %}
+      <span class="lint-ok">✅ OK</span>
+      {% elif page.lint_status == 'warn' %}
+      <span class="lint-warn">⚠️ Cảnh báo</span>
+      {% else %}
+      <span class="lint-error">❌ Lỗi</span>
+      {% endif %}
+      {% if page.reviewed %}
+      <span class="review-badge">✔ Reviewed</span>
+      {% else %}
+      <span style="font-size:0.72rem;color:#aaa;">Chưa review</span>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="emoji">📭</div>
+  <h3>Chưa có wiki page nào</h3>
+  <p>Nhấn <strong>Biên dịch Wiki</strong> để bắt đầu compile Knowledge Wiki từ các văn bản đã nhập.</p>
+  <button class="btn-compile" onclick="compileWiki()" style="margin:1rem auto;display:inline-flex;">⚡ Bắt đầu biên dịch</button>
+</div>
+{% endif %}
+
+<script>
+async function compileWiki() {
+  const btn = document.getElementById('btn-compile');
+  const status = document.getElementById('compile-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang biên dịch...';
+  status.style.display = 'inline-block';
+  try {
+    const res = await fetch('/api/phase3/compile', {method:'POST'});
+    const data = await res.json();
+    if (data.compiled !== undefined) {
+      alert(`✅ Đã biên dịch xong ${data.compiled} văn bản. Trang sẽ tải lại.`);
+      location.reload();
+    } else {
+      alert('Lỗi: ' + JSON.stringify(data));
+    }
+  } catch(e) {
+    alert('Lỗi kết nối: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Biên dịch Wiki';
+    status.style.display = 'none';
+  }
+}
+
+async function runLint() {
+  const res = await fetch('/api/phase3/lint', {method:'POST'});
+  const data = await res.json();
+  if (data.issues_count === 0) {
+    alert('✅ Không phát hiện vấn đề nào trong wiki!');
+  } else {
+    alert(`⚠️ Phát hiện ${data.issues_count} trang có vấn đề. Xem console để biết chi tiết.`);
+    console.log('Lint issues:', data.issues);
+    location.reload();
+  }
+}
+</script>
+{% endblock %}

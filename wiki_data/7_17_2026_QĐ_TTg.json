@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_7",
+  "document_number": "17/2026/QĐ-TTg",
+  "title": "Cong van 17/2026/QĐ-TTg: Người ký: .04.2026 10:06:27 +07:00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc Số:17/2026/Q4-TTg Hà Nội, ngày 15 th...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 17/2026/QĐ-TTg ngày 15/04/2026. Nội dung: # Van ban so 17/2026/QĐ-TTg Người ký: .04.2026 10:06:27 +07:00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc Số:17/2026/Q4-TTg Hà Nội, ngày 15 tháng 4 năm 2026 QÙYẾT ĐỊNH Chấm dứt hoạt động giẳi thể Ủy ban An toàn giao thông Quốc gia và Ban An toàn giag thông các địa phưong GONGTHONG TINDIFNTỦCHÍHPHỦ ĐẾN Già_ Căn cứ Luật Tồ chức Chính phủ 8ố 63/2025/QH15; Npòy: 20:...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "15/04/2026",
+        "effective": "15/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.267054"
+}

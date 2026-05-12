@@ -1,0 +1,26 @@
+{
+  "source_id": "wiki_12",
+  "document_number": "195/TB-VPCP",
+  "title": "Cong van 195/TB-VPCP: Người ký: .04.2026 16.13:17 +07:00 THT VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do \" Hanh phúc Số:195/TB-VPCP Hà Nội, ngày ...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 195/TB-VPCP ngày 17/04/2026. Nội dung: # Van ban so 195/TB-VPCP Người ký: .04.2026 16.13:17 +07:00 THT VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do \" Hanh phúc Số:195/TB-VPCP Hà Nội, ngày 17 tháng năm 2026 CONG THÓNG TIN @IFN TỦ CHÍnH PHD Giò: - ĐẾN %0ỵ211202 THÔNG BÁO Kết luận của Thủ tướng Chính phủ Lê Minh Hưng tại phiên họp thứ nhất của Hội đồng \" Thi đua Khen thưởng Trung ương nhiệm kỳ 2016-2031 Ngày, ngà...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "17/04/2026",
+        "effective": "17/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.348707"
+}

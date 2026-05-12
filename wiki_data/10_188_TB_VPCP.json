@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_10",
+  "document_number": "188/TB-VPCP",
+  "title": "Cong van 188/TB-VPCP: Người ký: .2026 16:35:20 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘICHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc Số:188/TB-VPCP Hà Nội, ngày 16 tháng 4 n...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 188/TB-VPCP ngày 16/04/2026. Nội dung: # Van ban so 188/TB-VPCP Người ký: .2026 16:35:20 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘICHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc Số:188/TB-VPCP Hà Nội, ngày 16 tháng 4 năm 2026 THÔNG BÁO Kết luận của Phó Thủ tướng Chính phủ Phạm Thị Thanh Trà tai cuộc họp về việc triển khai các nhiệm vụ tìm kiếm, quy tập CONGTHONGTIN DIEN Tu CHÍNH PHÚ và xác định danh tính hài cốt liệt sĩ Già:. ĐẾN %ỵ_Uìl 20...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ Nội vụ Phó Truởng Ban",
+        "Bộ Nội vụ về dự thảo Nghị quyết của Chính phủ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "16/04/2026",
+        "effective": "16/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.315970"
+}

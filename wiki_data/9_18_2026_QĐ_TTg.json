@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_9",
+  "document_number": "18/2026/QĐ-TTg",
+  "title": "Cong van 18/2026/QĐ-TTg: Người ký: .04.2026 14:58:36 +07.00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - 2 Tự do Hanh phúc Số:18/2026/Q4-TTg Hà Nội, ngày 1...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 18/2026/QĐ-TTg ngày 18/04/2026. Nội dung: # Van ban so 18/2026/QĐ-TTg Người ký: .04.2026 14:58:36 +07.00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - 2 Tự do Hanh phúc Số:18/2026/Q4-TTg Hà Nội, ngày 18 tháng 4 năm 2026 CNG THỎNG TIN ĐIEN TÙ CHÍNH PHÚ .4.1.2026. Quy định-chi-tiết thỉ-hành một số-điều của Nghị quyết số 70/2025/UBTVQHIS ngàỵ 07 tháng 02 năm 2025 được sửa đổi, bổ sung một số điều tại 3ghị quyết số 120/2026...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "18/04/2026",
+        "effective": "18/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.302665"
+}

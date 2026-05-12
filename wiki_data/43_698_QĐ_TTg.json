@@ -1,0 +1,26 @@
+{
+  "source_id": "wiki_43",
+  "document_number": "698/QĐ-TTg",
+  "title": "Cong van 698/QĐ-TTg: Người ký: .04.2026 16:00:46+07.00 THỦ TƯỚNG CHÍNH PHỦ +741 CỘNG HÒA XÃ HỘICHỦ NGHĨA VIỆT NAM Độc lêp Tự do Hạnh phúc Số: 698 /QĐ-TTg Hà Nội, ngày 20 t...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 698/QĐ-TTg ngày 20/04/2026. Nội dung: # Van ban so 698/QĐ-TTg Người ký: .04.2026 16:00:46+07.00 THỦ TƯỚNG CHÍNH PHỦ +741 CỘNG HÒA XÃ HỘICHỦ NGHĨA VIỆT NAM Độc lêp Tự do Hạnh phúc Số: 698 /QĐ-TTg Hà Nội, ngày 20 tháng 4 năm 2026 QUYẾT ĐỊNH Về việc kéo dàỉ thời gian giữ chức vụ /4722 1498694 THỦ TƯỚNG CHÍNH PHỦ Căn cứ Luật Tổ chức Chính phủ ngày 18 tháng 02 năm 2025; Căn cứ Luật Sĩ quan Quân đội nhân dân Việt Nam năm 1999, đã được sửa đ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "20/04/2026",
+        "effective": "20/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.859301"
+}

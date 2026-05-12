@@ -1,0 +1,26 @@
+{
+  "source_id": "wiki_27",
+  "document_number": "3291/VPCP-CN",
+  "title": "Cong van 3291/VPCP-CN: Người ký: .04.2026 14:46:23 +07:00 7447 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc số: 3291/VPCP-CN VIv Dự án đầu ...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 3291/VPCP-CN ngày 15/04/2026. Nội dung: # Van ban so 3291/VPCP-CN Người ký: .04.2026 14:46:23 +07:00 7447 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc số: 3291/VPCP-CN VIv Dự án đầu tư xây dựng tuyến đường Việt Trì Hòa Bình Hà Nội; ngày 15 tháng năm 2026 Kính gửi: T6c Bộ trưởng Bộ Tài chính; HOA CONG THONGTN DIEN TỦCHÍNHPHU Bộ truởng Bộ Xây dựng; ĐẾN GiàL 6688 Chủ tịch Ủy .1.20.26. ban nhân dân tinh Phú...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "15/04/2026",
+        "effective": "15/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.588650"
+}

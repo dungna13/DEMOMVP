@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_41",
+  "document_number": "691/QĐ-TTg",
+  "title": "Cong van 691/QĐ-TTg: Người ký: .04.2020 16:09:47 +07:00 THỦ TƯỚNG CHÍNH PHỦ CỘNGHOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc Số:691/Q4-TTg Hà Nội, ngày 16 tháng 4...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 691/QĐ-TTg ngày 16/04/2026. Nội dung: # Van ban so 691/QĐ-TTg Người ký: .04.2020 16:09:47 +07:00 THỦ TƯỚNG CHÍNH PHỦ CỘNGHOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc Số:691/Q4-TTg Hà Nội, ngày 16 tháng 4 năm 2026 QUYẾT ĐỊNH về vịệc thàuh Ĩập Phân hỉệu Học viện Tài chính tại tỉnh Hưng Yên trên' cơ_sở Trùờng Đại học Tài chính \" Quản trị kinh doanh ConG THONG TIN DIỆN TỦ CHÍi Phủ ĐẾNGià THỦ TƯỚNG CHÍNH PHỦ Ngày: 46.14-12026._ Cắ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ truởng Bộ Giáo dục và Đào tạo và Bộ truởng Bộ Tài chính chiu trách nhiệm",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "16/04/2026",
+        "effective": "16/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.824605"
+}

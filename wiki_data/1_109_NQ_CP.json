@@ -1,0 +1,26 @@
+{
+  "source_id": "wiki_1",
+  "document_number": "109/NQ-CP",
+  "title": "Nghi quyet 109/NQ-CP: Người ký: .04.2026 14:58.50 +07:00 CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do Hanh phúc Số:109/NQ-CP Hà Nội, ngày 16 tháng 4 năm 202...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 109/NQ-CP ngày 16/04/2026. Nội dung: # Van ban so 109/NQ-CP Người ký: .04.2026 14:58.50 +07:00 CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do Hanh phúc Số:109/NQ-CP Hà Nội, ngày 16 tháng 4 năm 2026 NGHỊ QUYẾT g Cập nhật, bổ sung Chương trình hành động của Chính phủ thực hiện Nghị quyết Đại hội đại biểu toàn quốc lần thứ XIV của Đảng và Kết luận '; số 18-KL/TW của Trung ương vê Kế hoạch phát triển kinh tế xã hội, tài chí...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "16/04/2026",
+        "effective": "16/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.174418"
+}

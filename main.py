@@ -1,12 +1,20 @@
 """
-main.py — FastAPI app cho Phase 1 + Phase 2
+main.py — FastAPI app cho Phase 1 + Phase 2 + Phase 3
 Hệ thống Tìm kiếm Văn bản Hành chính Quốc gia
-Phase 2: Hybrid Search + RAG Q&A + Legal Relations
+Phase 3: Knowledge Wiki (Karpathy LLM Wiki Pattern)
 """
 
 import os
+import sys
+import json
 import shutil
 import logging
+
+# Fix Windows console encoding for Vietnamese text
+os.environ.setdefault("PYTHONUTF8", "1")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 from fastapi import FastAPI, Request, Query, Body, Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -19,6 +27,9 @@ from src.services.search import search_documents, get_document_detail, list_docu
 from src.database.models import (
     DOC_TYPE_LABELS, EFFECTIVENESS_LABELS, EFFECTIVENESS_COLORS,
     RELATION_TYPE_LABELS, RELATION_TYPE_ICONS,
+)
+from src.services.wiki_compiler import (
+    compile_all_wiki, compile_wiki_for_document, lint_wiki, get_wiki_status
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -349,6 +360,145 @@ async def api_ingest():
     return {"message": "Đã nạp dữ liệu xong và cập nhật vector index."}
 
 
+# ─── Phase 3: Wiki Web Pages ─────────────────────────────────────────────────
+
+@app.get("/wiki", response_class=HTMLResponse)
+async def wiki_index(request: Request, field: Optional[str] = None, page: int = 1):
+    """Trang danh sách Knowledge Wiki."""
+    with get_db() as conn:
+        q = "SELECT id, slug, title, doc_number, legal_fields, summary, reviewed, lint_status, created_at FROM wiki_pages"
+        params = []
+        if field:
+            q += " WHERE legal_fields LIKE ?"
+            params.append(f'%{field}%')
+        q += " ORDER BY created_at DESC LIMIT 50"
+        pages_rows = conn.execute(q, params).fetchall()
+        total = conn.execute("SELECT COUNT(*) as n FROM wiki_pages").fetchone()["n"]
+        status = get_wiki_status()
+
+    wiki_pages_list = []
+    for r in pages_rows:
+        fields = []
+        try:
+            fields = json.loads(r["legal_fields"] or "[]")
+        except Exception:
+            pass
+        wiki_pages_list.append({
+            "id": r["id"], "slug": r["slug"], "title": r["title"],
+            "doc_number": r["doc_number"], "legal_fields": fields,
+            "summary": (r["summary"] or "")[:200],
+            "reviewed": r["reviewed"], "lint_status": r["lint_status"],
+            "created_at": r["created_at"],
+        })
+    return templates.TemplateResponse("wiki.html", {
+        "request": request, "wiki_pages": wiki_pages_list, "total": total,
+        "status": status, "field_filter": field,
+    })
+
+
+@app.get("/wiki/{slug}", response_class=HTMLResponse)
+async def wiki_page(request: Request, slug: str):
+    """Trang xem chi tiết một wiki page."""
+    with get_db() as conn:
+        page = conn.execute("SELECT * FROM wiki_pages WHERE slug=?", (slug,)).fetchone()
+    if not page:
+        return HTMLResponse("<h1>404 — Không tìm thấy trang wiki</h1>", status_code=404)
+
+    page = dict(page)
+    for field in ("key_points", "suggested_qa", "entities", "legal_fields", "tags"):
+        try:
+            page[field] = json.loads(page.get(field) or "[]")
+        except Exception:
+            page[field] = []
+
+    return templates.TemplateResponse("wiki_page.html", {"request": request, "page": page})
+
+
+# ─── Phase 3: REST API ────────────────────────────────────────────────────────
+
+@app.get("/api/phase3/status")
+async def api_phase3_status():
+    """REST API: Trạng thái Phase 3 Knowledge Wiki."""
+    return JSONResponse(content=get_wiki_status())
+
+
+@app.post("/api/phase3/compile")
+async def api_phase3_compile(
+    limit: Optional[int] = Query(None),
+    skip_existing: bool = Query(True),
+):
+    """REST API: Trigger biên dịch Phase 3 (Knowledge Wiki)."""
+    try:
+        count = await asyncio.to_thread(compile_all_wiki, limit=limit, skip_existing=skip_existing)
+        status = get_wiki_status()
+        return {"compiled": count, "status": status}
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/api/phase3/compile/{doc_id}")
+async def api_phase3_compile_doc(doc_id: int):
+    """REST API: Biên dịch Phase 3 cho 1 văn bản cụ thể."""
+    try:
+        path = await asyncio.to_thread(compile_wiki_for_document, doc_id)
+        if not path:
+            return JSONResponse({"error": "Không tìm thấy văn bản"}, status_code=404)
+        return {"message": "Biên dịch thành công", "file": path}
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/api/phase3/lint")
+async def api_phase3_lint():
+    """REST API: Chạy lint wiki."""
+    try:
+        issues = await asyncio.to_thread(lint_wiki)
+        return JSONResponse(content={"issues_count": len(issues), "issues": issues})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/api/wiki")
+async def api_wiki_list(field: Optional[str] = None, page: int = 1, page_size: int = 20):
+    """REST API: Danh sách wiki pages."""
+    with get_db() as conn:
+        q = "SELECT slug, title, doc_number, legal_fields, summary, reviewed, lint_status FROM wiki_pages"
+        params = []
+        if field:
+            q += " WHERE legal_fields LIKE ?"
+            params.append(f'%{field}%')
+        offset = (page - 1) * page_size
+        q += f" ORDER BY created_at DESC LIMIT {page_size} OFFSET {offset}"
+        rows = conn.execute(q, params).fetchall()
+        total = conn.execute("SELECT COUNT(*) as n FROM wiki_pages").fetchone()["n"]
+    results = []
+    for r in rows:
+        try:
+            fields = json.loads(r["legal_fields"] or "[]")
+        except Exception:
+            fields = []
+        results.append(dict(slug=r["slug"], title=r["title"], doc_number=r["doc_number"],
+                           legal_fields=fields, summary=(r["summary"] or "")[:200],
+                           reviewed=bool(r["reviewed"]), lint_status=r["lint_status"]))
+    return JSONResponse(content={"total": total, "page": page, "results": results})
+
+
+@app.get("/api/wiki/{slug}")
+async def api_wiki_page(slug: str):
+    """REST API: Nội dung chi tiết một wiki page."""
+    with get_db() as conn:
+        row = conn.execute("SELECT * FROM wiki_pages WHERE slug=?", (slug,)).fetchone()
+    if not row:
+        return JSONResponse({"error": "Không tìm thấy"}, status_code=404)
+    page = dict(row)
+    for field in ("key_points", "suggested_qa", "entities", "legal_fields", "tags"):
+        try:
+            page[field] = json.loads(page.get(field) or "[]")
+        except Exception:
+            page[field] = []
+    return JSONResponse(content=page)
+
+
 @app.get("/api/vector-info")
 async def api_vector_info():
     """REST API: Thông tin vector index."""
@@ -370,11 +520,17 @@ async def api_system_status():
         chunk_count = conn.execute("SELECT COUNT(*) as cnt FROM chunks").fetchone()["cnt"]
         rel_count = conn.execute("SELECT COUNT(*) as cnt FROM doc_relations").fetchone()["cnt"]
 
+    wiki_count = 0
+    try:
+        wiki_count = conn.execute("SELECT COUNT(*) as n FROM wiki_pages").fetchone()["n"]
+    except Exception:
+        pass
     return JSONResponse(content={
-        "phase": 2,
+        "phase": 3,
         "documents": doc_count,
         "chunks": chunk_count,
         "relations": rel_count,
+        "wiki_pages": wiki_count,
         "vector_indexed": _vector_indexed,
         "ai_available": is_ai_available(),
         "search_modes": ["keyword", "semantic", "balanced"],

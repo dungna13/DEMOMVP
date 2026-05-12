@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_32",
+  "document_number": "3399/VPCP-CN",
+  "title": "Cong van 3399/VPCP-CN: Người ký: .04.2026 10:08:09 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - = Tự do Hạnh phúc Hà Nội, ngày 18 tháng 4 năm 2026...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 3399/VPCP-CN ngày 18/04/2026. Nội dung: # Van ban so 3399/VPCP-CN Người ký: .04.2026 10:08:09 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - = Tự do Hạnh phúc Hà Nội, ngày 18 tháng 4 năm 2026 Số:3399/VPCP-CN Vlv kết quà rà soát cơ sở chính trị, pháp lý, thuc tiễn cua việc phê duyệt hoặc không phê duyệt các đề án do Bộ, ngành; địa phuơng trình Chính phù, Thủ tướng Chính phủ. cinG THONG 7IN ĐlỆN TÚ CHÍMH PHÚ ĐẾN %...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ Tư pháp rà soát",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "18/04/2026",
+        "effective": "18/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.678462"
+}

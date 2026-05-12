@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_34",
+  "document_number": "401/TTg-KTTH",
+  "title": "Cong van 401/TTg-KTTH: Người ký: .04.2026 16:23:42 +07.00 TAT THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hanh phúc Số:401/TTg-KTTH VIv tập trung ch...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 401/TTg-KTTH ngày 13/04/2026. Nội dung: # Van ban so 401/TTg-KTTH Người ký: .04.2026 16:23:42 +07.00 TAT THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hanh phúc Số:401/TTg-KTTH VIv tập trung chi đạo đẩy mạnh phân bổ, giải ngân vốn đầu tư công năm 2026 Hà Nội, ngày 13 tháng 4 năm 2026 Toc Kính gửi: HOA\" Bộ trưởng Thủ trưởng cơ quan ngang Bộ, Thủ trưởng các cơ quan khác ở Trung ương; GONG THONG 7IN ĐIÉN TUCHÍNH PH: ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "13/04/2026",
+        "effective": "13/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.710913"
+}

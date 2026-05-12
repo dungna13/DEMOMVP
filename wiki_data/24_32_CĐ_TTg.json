@@ -1,0 +1,26 @@
+{
+  "source_id": "wiki_24",
+  "document_number": "32/CĐ-TTg",
+  "title": "Cong van 32/CĐ-TTg: Người ký: .04.2026 16:13:02 +07:00 THỦ TƯÓNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập- Tự do Hạnh phúc Số: 32 ICĐ-TTg Hà Nội, ngày 19 thán...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 32/CĐ-TTg ngày 19/04/2026. Nội dung: # Van ban so 32/CĐ-TTg Người ký: .04.2026 16:13:02 +07:00 THỦ TƯÓNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập- Tự do Hạnh phúc Số: 32 ICĐ-TTg Hà Nội, ngày 19 tháng 4 năm 2026. CoNg THÓNG TIN @IỆN TỦ CHÍNH PHÚ T@c ĐẾN Già CÔNG ĐIỆN Ngày:20.141.2026. HOA vềviệc tổ chức thực hiện tổng rà soát hệ thống văn bản quy phạm pháp luật THỦ TƯỚNG CHÍNH PHỦ điện: Bộ truởng; Thủ truởng cơ quan ngang ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ Chính trị và Chuơng trình công tác năm 2026 của Ban",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "CHÍNH PHỦ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "19/04/2026",
+        "effective": "19/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.538932"
+}

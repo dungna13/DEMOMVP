@@ -1,0 +1,25 @@
+{
+  "source_id": "wiki_26",
+  "document_number": "3237/VPCP-KTTH",
+  "title": "Cong van 3237/VPCP-KTTH: Người ký: .04.2026 14:44:46+07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do Hanh phúc Số:3237/VPCP-KTTH Hà Nội, ngày 13 t...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 3237/VPCP-KTTH ngày 13/04/2026. Nội dung: # Van ban so 3237/VPCP-KTTH Người ký: .04.2026 14:44:46+07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do Hanh phúc Số:3237/VPCP-KTTH Hà Nội, ngày 13 tháng 4 năm 2026 Vlv tình hình cơ cấu DNNN giai đoan 2021-2025; cách thức triền khai cơ cấu lại DNNN giai đoạn 2026-2030 CỜWG THÔNG TIN @lỆN TỦ CHÍNH PHỦ Kính gửi: ĐẾN\" Giò:. 7816 Bộ Tài chính; Ngày:44:14:12026 Bộ Tu pháp. ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "13/04/2026",
+        "effective": "13/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.574181"
+}

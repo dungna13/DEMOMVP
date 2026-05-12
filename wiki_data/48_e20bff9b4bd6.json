@@ -1,0 +1,25 @@
+{
+  "source_id": "wiki_48",
+  "document_number": "e20bff9b4bd6",
+  "title": "Cong van e20bff9b4bd6: Quy định về công bố hợp chuẩn, công bố hợp quy",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số e20bff9b4bd6 ngày Trang chủHệ thống văn bản. Nội dung: # Van ban so e20bff9b4bd6 BỘ KHOA HỌC VÀ CÔNG NGHỆ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc Số: /2026/TT-BKHCN Hà Nội, ngày tháng năm 2026 THÔNG TƯ Quy định về công bố hợp chuẩn, công bố hợp quy và phương thức đánh giá sự phù hợp với tiêu chuẩn, quy chuẩn kỹ thuật Căn cứ Luật Tiêu chuẩn và quy chuẩn kỹ thuật số 68/2006/QH11 được sửa đổi, bổ sung bởi Luật số 35/2018/QH14 và Lu...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ trưởng Bộ Khoa học và Công nghệ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "Trang chủHệ thống văn bản",
+        "effective": "Trang chủHệ thống văn bản"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.965630"
+}

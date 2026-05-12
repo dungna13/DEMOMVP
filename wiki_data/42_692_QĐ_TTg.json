@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_42",
+  "document_number": "692/QĐ-TTg",
+  "title": "Cong van 692/QĐ-TTg: Người ký: .04.2026 16:35:36+07:00 TTT THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIGT NAM Độc lập 2 Tự do Hanh phúc Số:692/Q4-TTg Hà Nội, ngày 16 t...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 692/QĐ-TTg ngày 16/04/2026. Nội dung: # Van ban so 692/QĐ-TTg Người ký: .04.2026 16:35:36+07:00 TTT THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIGT NAM Độc lập 2 Tự do Hanh phúc Số:692/Q4-TTg Hà Nội, ngày 16 tháng 4 năm 2026 QUYẾT ĐỊNH Về việc ban hành Kế hoach tổ chức các hoạt động kỷ niệm 80 năm Ngày Thương binh Liệt sĩ (27/7/1947 - 27/7/2027) GONG THONG TIN DIÉN Tù CHINHPHÚ Già: ĐẾN %ỵ_7/47242 898008 THỦ TƯỚNG CHÍNH PHỦ Căn cứ L...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "16/04/2026",
+        "effective": "16/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.844328"
+}

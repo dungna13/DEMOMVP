@@ -1,0 +1,25 @@
+{
+  "source_id": "wiki_35",
+  "document_number": "42/2026/TT-BTC",
+  "title": "Thong tu 42/2026/TT-BTC: Ký bởi: BỘ TÀI CHÍNH Co quan: 28 Trần Hưng Đạo Thời gian ký: 15/04/2026 15.24:55 +07:00 BỘ TÀI CHÍNH CỘNG HOÀ XÃ HỘI CHỦ NGHIA VIỆT NAM Độc lập -Tự do...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 42/2026/TT-BTC ngày 15/04/2026. Nội dung: # Van ban so 42/2026/TT-BTC Ký bởi: BỘ TÀI CHÍNH Co quan: 28 Trần Hưng Đạo Thời gian ký: 15/04/2026 15.24:55 +07:00 BỘ TÀI CHÍNH CỘNG HOÀ XÃ HỘI CHỦ NGHIA VIỆT NAM Độc lập -Tự do - Hạnb phúc Số: 42 /2026/TT-BTC Hà Nội, ngày 15 tháng 4 năm 2026 THÔNG TƯ Quy định mẩu biểu công bố thông tin về nợ công Căn cứ Luật Quản lý nợ công số 20/2017/QH14 được sửa đổi; bổ sung bởi Luật số 141/2025/QH15 ngày 10 ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ truởng Bộ Tài chính",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "15/04/2026",
+        "effective": "15/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.724840"
+}

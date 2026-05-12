@@ -1,0 +1,25 @@
+{
+  "source_id": "wiki_29",
+  "document_number": "3357/VPCP-CN",
+  "title": "Cong van 3357/VPCP-CN: Người ký: .04.2026 16:13:43 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIẲT NAM Độc lập Tự do Hạnh phúc Số:3357/VPCP-CN Vlv thuc hiện Nghị q...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 3357/VPCP-CN ngày 17/04/2026. Nội dung: # Van ban so 3357/VPCP-CN Người ký: .04.2026 16:13:43 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIẲT NAM Độc lập Tự do Hạnh phúc Số:3357/VPCP-CN Vlv thuc hiện Nghị quyết số 188/202S/QH15 ngày 19 tháng 02năm 2025 của Quốc hội vể thí điếm một số cƠ chế, chính sách đặc thù, đặc biệt để phát triển hệ thống mạng lưới đuờng sắt đô thị tại thành phố Hà Nội, Thành phố Hồ Chí Minh Hà Nội, ngày 1...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "17/04/2026",
+        "effective": "17/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.622282"
+}

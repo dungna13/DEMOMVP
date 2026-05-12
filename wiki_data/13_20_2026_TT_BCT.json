@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_13",
+  "document_number": "20/2026/TT-BCT",
+  "title": "Thong tu 20/2026/TT-BCT: Sửa đổi, bổ sung một số điều của Thông tư số 10/2025/TT-BCT ngày 01 tháng 02 năm 2025 quy định phương pháp xác định và nguyên tắc áp dụng biểu giá chi phí tránh được cho các nhà máy điện năng lượng tái tạo nhỏ; nội dung chính của hợp đồng mua bán điện",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 20/2026/TT-BCT ngày 17/04/2026. Nội dung: # Van ban so 20/2026/TT-BCT ý bởi: Bộ Công Thương X8ya,fi/ô 84Ẹẳ NAM07.oo Hanh phúc BỘ CÔNG THƯƠNG CỘNG HOÀ XÃ HG Độc lập - 1 2 0 /2026/TT-BCT Hà Nội, ngày 17 tháng 4 năm 2026 THÔNG TƯ Sửa đổi, bổ sung một số điều của Thông tư số 10/2025/TT-BCT ngày 01 tháng 02 năm 2025 quy định phương pháp xác định và nguyên tắc áp dụng biểu giá chi phí tránh được cho các nhà máy điện năng lượng tái tạo nhỏ; nội ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ Công Thương",
+        "Bộ trưởng Bộ Công Thương",
+        "Thủ tướng Chính phủ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "17/04/2026",
+        "effective": "17/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.363202"
+}

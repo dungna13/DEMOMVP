@@ -1,0 +1,25 @@
+{
+  "source_id": "wiki_30",
+  "document_number": "3358/VPCP-CN",
+  "title": "Cong van 3358/VPCP-CN: Người ký: .04.2026 10:07:40 +07.00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc Số:3358/VPCP-CN Vlv thực hiện Nghị q...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 3358/VPCP-CN ngày 17/04/2026. Nội dung: # Van ban so 3358/VPCP-CN Người ký: .04.2026 10:07:40 +07.00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc Số:3358/VPCP-CN Vlv thực hiện Nghị quyết số Hà Nội, ngày 17 tháng 4 năm 2026 187/2025/QH15 ngày 19 tháng 02 năm 2025 của Quốc hội vềchủ trưong đầu tư Dự án đầu tu xây dmng tuyến đường sắt Lào Cai Hà Nội Hải Phòng Kính gửi: T@c Các Bộ: Quốc phòng; Công a, Xây d...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "17/04/2026",
+        "effective": "17/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.642308"
+}

@@ -1,0 +1,26 @@
+{
+  "source_id": "wiki_11",
+  "document_number": "191/TB-VPCP",
+  "title": "Cong van 191/TB-VPCP: Người ký: .04.2026 10:07:32 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập 2 Tự do Hạnh phúc Số:191/TB-VPCP Hà Nội, ngày 17 thá...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 191/TB-VPCP ngày 17/04/2026. Nội dung: # Van ban so 191/TB-VPCP Người ký: .04.2026 10:07:32 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập 2 Tự do Hạnh phúc Số:191/TB-VPCP Hà Nội, ngày 17 tháng 4 năm 2026 ciNg THỎNG TIM @IỆN TÙ CHÍNH PHỦ Gid: THÔNG BÁO ĐẾN %%p 2147226 868 Toc 8889888 HOA Kết luận của Phó Thủ tướng Chính phủ Hồ Quốc Ding tại buổi làm việc với Bộ Dân tộc và Tôn giáo Chiều ngày 15 tháng 4 năm 2026, ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "17/04/2026",
+        "effective": "17/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.332781"
+}

@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_22",
+  "document_number": "31/CĐ-TTg",
+  "title": "Cong van 31/CĐ-TTg: Người ký: CỒNG THÔNG TIN ĐIỆN TỬ CHÍNH PHỦ Email: thongtinchinhphu@chinhphu:.vn Cơ quan: VẴN PHÒNG CHÍNH PHỦ Thời zian kv: 20:04:2026 10:07:05 +07:00 ...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 31/CĐ-TTg ngày 18/04/2026. Nội dung: # Van ban so 31/CĐ-TTg Người ký: CỒNG THÔNG TIN ĐIỆN TỬ CHÍNH PHỦ Email: thongtinchinhphu@chinhphu:.vn Cơ quan: VẴN PHÒNG CHÍNH PHỦ Thời zian kv: 20:04:2026 10:07:05 +07:00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do Hanh phúc số: 34 ICĐ-TTg Hà Nội, ngày 18 tháng 4 năm 2026 Tic CÔNG ĐIỆN HOA về việc triển khai thực hiện công tác đặc xá năm 2026 THỦ TƯỚNG CHÍNH PHỦ điện: ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ Quốc phòng có trách nhiệm truc tiếp",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "18/04/2026",
+        "effective": "18/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.510893"
+}

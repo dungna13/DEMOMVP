@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_38",
+  "document_number": "669/QĐ-TTg",
+  "title": "Cong van 669/QĐ-TTg: Người ký: .04.2026 14:44:24 +07.00 THỦ TƯỚNG CHÍH PHỦ CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIUT NAM Độc lập - \" Tự do Hanh phúc Số:669/QĐ-TTg Hà Nội, ngày 13 thá...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 669/QĐ-TTg ngày 13/04/2026. Nội dung: # Van ban so 669/QĐ-TTg Người ký: .04.2026 14:44:24 +07.00 THỦ TƯỚNG CHÍH PHỦ CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIUT NAM Độc lập - \" Tự do Hanh phúc Số:669/QĐ-TTg Hà Nội, ngày 13 tháng 4 năm 2026 QUYẾT ĐỊNH Phê chuẩn kết quả bầu chức vụ Phó Chủ tịch Ủy ban nhân dân tỉnh Đồng Nai nhiệm kỳ 2026.- 2031 conG THÓNG TIN ĐIiN TÚ CHÍNH PHú Giò: [ĐẾN%ỵ7747722 THỦ TƯỚNG CHÍNH PHỦ Căn cứ Luật Tổ chức Chính phú ngày ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Ủy ban nhân dân tỉnh Đồng Nai và ông Nguyễn Tuấn Anh chju trách nhiệm thi hành",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "13/04/2026",
+        "effective": "13/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.775671"
+}

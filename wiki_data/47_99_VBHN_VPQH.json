@@ -1,0 +1,23 @@
+{
+  "source_id": "wiki_47",
+  "document_number": "99/VBHN-VPQH",
+  "title": "Cong van 99/VBHN-VPQH: CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM  Độc lập - Tự do - Hạnh phúc    LUẬT  TÀI NGUYÊN, MÔI TRƯỜNG BIỂN VÀ HẢI ĐẢO    Luật Tài nguyên, môi trường biển và...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 99/VBHN-VPQH ngày 10/04/2026. Nội dung: # Van ban so 99/VBHN-VPQH CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc LUẬT TÀI NGUYÊN, MÔI TRƯỜNG BIỂN VÀ HẢI ĐẢO Luật Tài nguyên, môi trường biển và hải đảo số 82/2015/QH13 ngày 25 tháng 6 năm 2015 của Quốc hội, có hiệu lực kể từ ngày 01 tháng 7 năm 2016, được sửa đổi, bổ sung bởi: 1. Luật số 35/2018/QH14 ngày 20 tháng 11 năm 2018 của Quốc hội sửa đổi, bổ sung một số điều của 3...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "10/04/2026",
+        "effective": "10/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.930404"
+}

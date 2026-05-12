@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_45",
+  "document_number": "701/QĐ-TTg",
+  "title": "Cong van 701/QĐ-TTg: Người ký: .04.2026 14:59:17 +07.00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHIA VIỆT NAM Độc lập Tự do Hanh phúc CoNg THoNG TIn @Iintu 59m04 /QĐ-TTg ...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 701/QĐ-TTg ngày 20/04/2026. Nội dung: # Van ban so 701/QĐ-TTg Người ký: .04.2026 14:59:17 +07.00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHIA VIỆT NAM Độc lập Tự do Hanh phúc CoNg THoNG TIn @Iintu 59m04 /QĐ-TTg Hà Nội, ngày 20 tháng 4 năm 2026 Glv:. ĐẾN %ỵ_2122222 QUYẾT ĐỊNH Phân cong cơ quan chủ trì soạn thảo và thời hạn trình các dự án luật được đỉều chỉnh trong Chương trình lập pháp năm 2026 THỦ TƯỚNG CHÍNH PHỦ jg Căn cứ Luật Tồ c...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "bộ có dự án luật được phân công chủ trì xây dựng tại Bản phân công",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "20/04/2026",
+        "effective": "20/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.894688"
+}

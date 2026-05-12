@@ -1,0 +1,23 @@
+{
+  "source_id": "wiki_17",
+  "document_number": "235/NQ-UBTVQH16",
+  "title": "Nghi quyet 235/NQ-UBTVQH16: ỦY BAN THƯỜNG VV QUÓC HỘI Số: 235 /NQ-UBTVQHI6 CỘNG IIÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do _ Hạnh phúc Hà Nội, ngày 11 tháng 4 năm 2026 NGHJ Q...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 235/NQ-UBTVQH16 ngày 11/04/2026. Nội dung: # Van ban so 235/NQ-UBTVQH16 ỦY BAN THƯỜNG VV QUÓC HỘI Số: 235 /NQ-UBTVQHI6 CỘNG IIÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do _ Hạnh phúc Hà Nội, ngày 11 tháng 4 năm 2026 NGHJ QUYẾT về việc phê chuẩn đạỉ biểu Quôc hội hoat động chuyên trách khóa XVI tỉnh Thanh Hóa ỦY BAN THƯỜNG VV QUÓC HỘI Căn cứ Hiến pháp nước Cộng hoà xã hội chủ nghĩa Việt Nam đã được sửa đổi, bổ sung một sổ điều theo Nghị quy...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "11/04/2026",
+        "effective": "11/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.437608"
+}

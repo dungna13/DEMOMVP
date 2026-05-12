@@ -1,0 +1,23 @@
+{
+  "source_id": "wiki_16",
+  "document_number": "234/NQ-UBTVQH16",
+  "title": "Nghi quyet 234/NQ-UBTVQH16: ỦY BAN THƯỜNG VỤ QUÓC HỘI CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hanh phúc Số:234 /NQ-UBTVQHI6 Hà Nội, ngày 10 tháng 4 năm 2026 NGHỊ QUY...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 234/NQ-UBTVQH16 ngày 10/04/2026. Nội dung: # Van ban so 234/NQ-UBTVQH16 ỦY BAN THƯỜNG VỤ QUÓC HỘI CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hanh phúc Số:234 /NQ-UBTVQHI6 Hà Nội, ngày 10 tháng 4 năm 2026 NGHỊ QUYÉT về việc phê chuẩn đại biểu Quốc hội hoat động chuyên trách khóa XVI tỉnh Lâm Đông ỦY BAN THƯỜNG VU QUÓC HỘI Căn cứ Hiến pháp nước Cộng hoà xã hội chủ nghĩa Việt Nam đã được sửa đổi, bổ sung một số điều theo Nghị - quyế...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "10/04/2026",
+        "effective": "10/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.421764"
+}

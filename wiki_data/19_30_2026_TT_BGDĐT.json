@@ -1,0 +1,25 @@
+{
+  "source_id": "wiki_19",
+  "document_number": "30/2026/TT-BGDĐT",
+  "title": "Thong tu 30/2026/TT-BGDĐT: BỘ GIÁO DUC VÀ ĐÀO TẠO CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập -Tự do Hanh phúc Số 30 /2026/TT-BGDĐT Hà Nội, ngày 14 tháng 04 năm 2026 THÔNG TƯ Quy...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 30/2026/TT-BGDĐT ngày 14/04/2026. Nội dung: # Van ban so 30/2026/TT-BGDĐT BỘ GIÁO DUC VÀ ĐÀO TẠO CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập -Tự do Hanh phúc Số 30 /2026/TT-BGDĐT Hà Nội, ngày 14 tháng 04 năm 2026 THÔNG TƯ Quy định chuẩn nghề nghiệp giáo viên cơ sở giáo dục phổ thông Căn cứ Luật Nhà giáo số 73/2025/QH15; Căn cứ Nghị định số 93/2026/NĐ-CP ngày 31 tháng 3 năm 2026 của Chính phủ quy định chi tiết và hướng dẫn thi hành một số điề...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ trưởng Bộ Giáo dục và Đào tạo",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "14/04/2026",
+        "effective": "14/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.466607"
+}

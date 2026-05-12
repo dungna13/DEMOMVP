@@ -1,0 +1,24 @@
+{
+  "source_id": "wiki_18",
+  "document_number": "237/NQ-UBTVQH16",
+  "title": "Nghi quyet 237/NQ-UBTVQH16: ỦY BAN THƯỜNG VỤ QUỐC HỘI Số:237/NQ-UBTVQH16 CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hanh phúc Hà Nội, ngày 14 tháng 4 năm 2026 NGHỊ QUYẾ...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 237/NQ-UBTVQH16 ngày 14/04/2026. Nội dung: # Van ban so 237/NQ-UBTVQH16 ỦY BAN THƯỜNG VỤ QUỐC HỘI Số:237/NQ-UBTVQH16 CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hanh phúc Hà Nội, ngày 14 tháng 4 năm 2026 NGHỊ QUYẾT Về việc thành lập 10 phường thuộc tỉnh Đồng Nai ỦY BAN THƯỜNG VỤ QUÓC HỘI Căn cứ Hiến pháp nước Cộng hòa xã hội chủ nghĩa Việt Nam đã được sửa đổi bổ sung một số điều theo Nghị quyết số 203/2025/QH15; Căn cứ Luật Tổ chứ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "14/04/2026",
+        "effective": "14/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.453451"
+}

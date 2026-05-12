@@ -212,3 +212,25 @@ RELATION_TYPE_ICONS = {
     "vien_dan": "🔗",
     "dinh_chinh": "📝",
 }
+# ========== PHASE 3: WIKI DATA ==========
+
+class WikiQAPair(BaseModel):
+    question: str
+    answer: str
+
+
+class WikiData(BaseModel):
+    summary: str
+    key_points: List[str] = []
+    legal_fields: List[str] = []
+    suggested_questions: List[WikiQAPair] = []
+    entities: dict = {}
+
+
+class WikiDocument(BaseModel):
+    source_id: str
+    document_number: str
+    title: str
+    wiki_data: WikiData
+    model: str = ""
+    processed_at: str = ""

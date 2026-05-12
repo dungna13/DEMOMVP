@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_20",
+  "document_number": "30/CĐ-TTg",
+  "title": "Cong van 30/CĐ-TTg: Người ký: .04.2026 14:45:40 +07:00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc số:30 ICĐ-TTg Hà Nội, ngày 15 tháng ...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 30/CĐ-TTg ngày 15/04/2026. Nội dung: # Van ban so 30/CĐ-TTg Người ký: .04.2026 14:45:40 +07:00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc số:30 ICĐ-TTg Hà Nội, ngày 15 tháng 4 năm 2026 CÔNG ĐIỆN Tic Tăng cường công tác vận tải và bảo đảm trật tự, an toàn giao thông HOA trong kỳ nghỉ Lễ Giỗ tổ Hùng Vương và dịp 30/4 : 01/5 năm 2026 CONG THÓNG TINĐIEN TỦ CHÍvH PHỦ THỦ TƯỚNG CHÍNH PHỦ điện: ĐẾN Giì Lá...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ Công an",
+        "Bộ Xây dựng",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "CHÍNH PHỦ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "15/04/2026",
+        "effective": "15/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.480395"
+}

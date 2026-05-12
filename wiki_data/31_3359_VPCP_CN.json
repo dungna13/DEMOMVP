@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_31",
+  "document_number": "3359/VPCP-CN",
+  "title": "Cong van 3359/VPCP-CN: Người ký: .04.2026 10:07:49 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập 2 Tự do Hạnh phúc Số:3359/VPCP-CN VIv thuc hiện Nghị...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 3359/VPCP-CN ngày 17/04/2026. Nội dung: # Van ban so 3359/VPCP-CN Người ký: .04.2026 10:07:49 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập 2 Tự do Hạnh phúc Số:3359/VPCP-CN VIv thuc hiện Nghị quyết số Hà Nội, ngày 17 tháng 4 năm 2026 172/2024/QH15 ngày 30 tháng 11 năm 2024 cùa Quốc hội vế chủ tuong đầu tu Dựán đường sẳttốc độcaotên tục Bắc - Nam T6c Kính gửi: HOA Các Bộ: Quốc phòng, Công an, Xây dựng, Tài chính,...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Bộ trưởng Bộ Xây dựng",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "17/04/2026",
+        "effective": "17/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.661360"
+}

@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_5",
+  "document_number": "16/2026/QĐ-TTg",
+  "title": "Cong van 16/2026/QĐ-TTg: Người ký: .04.2026 14:45:09 +07:00 TTT(2  THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - 2 Tự do 2 Hạnh phúc số: 16/2026/Q4-TTg Hà N...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 16/2026/QĐ-TTg ngày 15/04/2026. Nội dung: # Van ban so 16/2026/QĐ-TTg Người ký: .04.2026 14:45:09 +07:00 TTT(2 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - 2 Tự do 2 Hạnh phúc số: 16/2026/Q4-TTg Hà Nội, ngày 15 tháng 4 năm 2026 CONG THÓNG TIN ĐIÈN 7Ủ CHÍNH PHÙ 72026 98888 QUYẾT ĐỊNH Quy định ongavÊnng ngiêv sh đin& àmứpttângbẩ ụgânệsáchtrơng ương và tỷ lệ vốn ứng ngân sách của địa phương thực hiện Chương trình mục tiêu...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "15/04/2026",
+        "effective": "15/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.238078"
+}

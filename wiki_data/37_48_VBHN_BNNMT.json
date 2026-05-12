@@ -1,0 +1,24 @@
+{
+  "source_id": "wiki_37",
+  "document_number": "48/VBHN-BNNMT",
+  "title": "Cong van 48/VBHN-BNNMT: Phụ lục I1  MẪU QUYẾT ĐỊNH PHÂN BỔ HẠN NGẠCH PHÁT THẢI KHÍ NHÀ KÍNH,  PHƯƠNG PHÁP XÁC ĐỊNH HẠN NGẠCH PHÁT THẢI KHÍ NHÀ KÍNH  (Kèm theo Nghị định số 11...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 48/VBHN-BNNMT ngày 15/04/2026. Nội dung: # Van ban so 48/VBHN-BNNMT Phụ lục I1 MẪU QUYẾT ĐỊNH PHÂN BỔ HẠN NGẠCH PHÁT THẢI KHÍ NHÀ KÍNH, PHƯƠNG PHÁP XÁC ĐỊNH HẠN NGẠCH PHÁT THẢI KHÍ NHÀ KÍNH (Kèm theo Nghị định số 119/2025/NĐ-CP ngày 09 tháng 6 năm 2025 của Chính phủ) _________ Mẫu số 01 Mẫu quyết định về việc phân bổ hạn ngạch phát thải khí nhà kính Phương pháp số 01 Phương pháp xác định hạn ngạch phát thải khí nhà kính cho cơ sở phát th...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "15/04/2026",
+        "effective": "15/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.756152"
+}

@@ -1,0 +1,24 @@
+{
+  "source_id": "wiki_28",
+  "document_number": "33/HD-HĐTVĐX",
+  "title": "Cong van 33/HD-HĐTVĐX: Người ký: .04.2026 14:43:27 +07.00 HỘI ĐỎNG TU VÁN ĐẶC XÁ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập \" Tự do Hạnh phúc Số:33/HD-HĐTVĐX Hà Nội, ngày 11...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 33/HD-HĐTVĐX ngày 11/04/2026. Nội dung: # Van ban so 33/HD-HĐTVĐX Người ký: .04.2026 14:43:27 +07.00 HỘI ĐỎNG TU VÁN ĐẶC XÁ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập \" Tự do Hạnh phúc Số:33/HD-HĐTVĐX Hà Nội, ngày 11 tháng 4 năm 2026 CONG THÒNG TIN ĐIN TỦ CHÍNH PHÙ ĐẾN Gid: HƯỚNG DÃN Ngày:-/4.1412026. Về việc triển khai thực hiện Quyểt định số 457/QĐ-CTN ngày 07 tháng 4 năm 2026 của Chủ tịch nước về đặc xá năm 2026 Thực hiện Quyết định ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "11/04/2026",
+        "effective": "11/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.604953"
+}

@@ -1,0 +1,23 @@
+{
+  "source_id": "wiki_15",
+  "document_number": "232/NQ-UBTVQH16",
+  "title": "Nghi quyet 232/NQ-UBTVQH16: ÙY BAN THƯỜNG VWJ QUÓC HỘI Số..32 /NQ-UBTVQHI6 CỘNG HÒA XÃ HỘI CHÚ NGHĨA VIỆT NAM Độc lập - Tự do - Hanh phúc Hà Nội, ngày 9 tháng 4 năm 2026 NGHỊ QUY...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 232/NQ-UBTVQH16 ngày 09/04/2026. Nội dung: # Van ban so 232/NQ-UBTVQH16 ÙY BAN THƯỜNG VWJ QUÓC HỘI Số..32 /NQ-UBTVQHI6 CỘNG HÒA XÃ HỘI CHÚ NGHĨA VIỆT NAM Độc lập - Tự do - Hanh phúc Hà Nội, ngày 9 tháng 4 năm 2026 NGHỊ QUYẾT Về việc phê chuẩn Trưởng đoàn đại biểu Quốc hội khóa XVI thành phố Hải Phòng ỦY BAN THƯỜNG VỤ QUỐC HỘI Căn cứ Hiến pháp nước Cộng hoà xã hội chủ nghĩa Việt Nan đã được sửa đổi, bổ sung một số điều theo Nghị quyết - số ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "09/04/2026",
+        "effective": "09/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.406269"
+}

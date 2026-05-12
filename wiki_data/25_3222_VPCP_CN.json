@@ -1,0 +1,25 @@
+{
+  "source_id": "wiki_25",
+  "document_number": "3222/VPCP-CN",
+  "title": "Cong van 3222/VPCP-CN: Người ký: .04.2026 14:44:35 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hanh phúc Số:3222/VPCP-CN Hà Nội, ngày 13 thán...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 3222/VPCP-CN ngày 13/04/2026. Nội dung: # Van ban so 3222/VPCP-CN Người ký: .04.2026 14:44:35 +07:00 VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hanh phúc Số:3222/VPCP-CN Hà Nội, ngày 13 tháng 4 năm 2026 VIv Dự án đường sắt đô thị Hà Nội, tuyển số 5 CongTHÓNG TIN ĐIEN 7ỦCHÍNH PHỦ ĐẾN Già: 141202 Kính gửi: Chủ tịch Ủy ban nhân dân thành phố Hà Nội. Ngày:_l4 / Xét báo cáo của Ủy ban nhân dân thành phố Hà Nội (văn ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "13/04/2026",
+        "effective": "13/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.559759"
+}

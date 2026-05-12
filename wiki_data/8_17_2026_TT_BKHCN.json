@@ -1,0 +1,25 @@
+{
+  "source_id": "wiki_8",
+  "document_number": "17/2026/TT-BKHCN",
+  "title": "Thong tu 17/2026/TT-BKHCN: Ban hành Điều lệ mẫu về tổ chức và hoạt động của Quỹ phát triển",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 17/2026/TT-BKHCN ngày 13/04/2026. Nội dung: # Van ban so 17/2026/TT-BKHCN BỘ KHOA HỌC VÀ CÔNG NGHỆ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc Số: /2026/TT-BKHCN Hà Nội, ngày tháng năm 2026 THÔNG TƯ Ban hành Điều lệ mẫu về tổ chức và hoạt động của Quỹ phát triển khoa học, công nghệ và đổi mới sáng tạo của Bộ, cơ quan ngang Bộ, cơ quan thuộc Chính phủ, cơ quan khác ở trung ương, Ủy ban nhân dân cấp tỉnh Căn cứ Luật Khoa họ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Ủy ban nhân dân cấp \ntỉnh tùy theo tình hình thực tế",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "13/04/2026",
+        "effective": "13/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.283217"
+}

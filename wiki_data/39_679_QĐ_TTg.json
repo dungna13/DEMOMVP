@@ -1,0 +1,27 @@
+{
+  "source_id": "wiki_39",
+  "document_number": "679/QĐ-TTg",
+  "title": "Cong van 679/QĐ-TTg: Người ký: .04.2026 15:44:04+07.00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do Hạnh phúc Số:6*9 IQE-TTg Hà Nội, ngày 14 thán...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 679/QĐ-TTg ngày 14/04/2026. Nội dung: # Van ban so 679/QĐ-TTg Người ký: .04.2026 15:44:04+07.00 THỦ TƯỚNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do Hạnh phúc Số:6*9 IQE-TTg Hà Nội, ngày 14 tháng 4 năm 2026 QUYẾT ĐỊNH Phê chuẩn kết quả bầu chức vụ Phó Chủ tịch Ủy ban nhân dân tỉnh Hưng Yên nhiệm kỳ 2026 2 2031 cônG THÓNG TIN ĐIEN TỦ CHÍNH PHÝ] Giò:. ĐẾN%_77442027 18888 HỦTƯỚNG CHÍNH PHỦ Căn cu 'Luật;Ìổ chức Chinh phủ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Ủy ban nhân dân tỉgh Hung Yên và các ông có tên tại Điều 1 chịu trách nhiệm thi hành",
+        "THỦ TƯỚNG CHÍNH PHỦ",
+        "Thủ tướng Chính phủ",
+        "CHÍNH PHỦ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "14/04/2026",
+        "effective": "14/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.790497"
+}

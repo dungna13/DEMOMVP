@@ -1,0 +1,24 @@
+{
+  "source_id": "wiki_14",
+  "document_number": "23/VBHN-BXD",
+  "title": "Cong van 23/VBHN-BXD: CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM  Độc lập - Tự do - Hạnh phúc    NGHỊ ĐỊNH  Quy định xử phạt vi phạm hành chính trong lĩnh vực hàng hải    Nghị định...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 23/VBHN-BXD ngày 09/04/2026. Nội dung: # Van ban so 23/VBHN-BXD CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc NGHỊ ĐỊNH Quy định xử phạt vi phạm hành chính trong lĩnh vực hàng hải Nghị định số 142/2017/NĐ-CP ngày 01 tháng 12 năm 2017 của Chính phủ quy định xử phạt vi phạm hành chính trong lĩnh vực hàng hải, có hiệu lực kể từ ngày 01 tháng 02 năm 2018, được sửa đổi, bổ sung bởi: 1. Nghị định số 123/2021/NĐ-CP ngày 28 th...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "09/04/2026",
+        "effective": "09/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.383011"
+}

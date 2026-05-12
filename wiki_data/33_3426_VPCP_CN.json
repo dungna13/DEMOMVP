@@ -1,0 +1,25 @@
+{
+  "source_id": "wiki_33",
+  "document_number": "3426/VPCP-CN",
+  "title": "Cong van 3426/VPCP-CN: Người ký: .04.2026 16:01:12 +07.00 TrT VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc Số:3426/VPCP-CN Hà Nội, ngày 20 ...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 3426/VPCP-CN ngày 20/04/2026. Nội dung: # Van ban so 3426/VPCP-CN Người ký: .04.2026 16:01:12 +07.00 TrT VĂN PHÒNG CHÍNH PHỦ CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập Tự do Hạnh phúc Số:3426/VPCP-CN Hà Nội, ngày 20 tháng 4 năm 2026 VIv trien khai tuyến đường kết nối sân bay GiaBình vói Thù đô Hà Nội, doạn qua tỉnh Bắc Ninh Kính gửi: Toc côNG THÓNo TIn @lÉN TỦ CHÍNH PHỦ Các Bộ trưởng các Bộ: Tài chính, Xây dựng, HOA Nông nghiệp và Môi t...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "CHÍNH PHỦ",
+        "Chính phủ"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "20/04/2026",
+        "effective": "20/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.694836"
+}

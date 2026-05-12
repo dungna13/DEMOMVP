@@ -1,0 +1,24 @@
+{
+  "source_id": "wiki_36",
+  "document_number": "45/2026/QĐ-UBND",
+  "title": "Cong van 45/2026/QĐ-UBND: ỦY BAN NHÂN DÂN TỈNH NINH BÌNH CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc Số:        /2026/QĐ-UBND Ninh Bình, ngày       tháng 4 n...",
+  "wiki_data": {
+    "summary": "Văn bản Chính phủ ban hành văn bản số 45/2026/QĐ-UBND ngày 14/04/2026. Nội dung: # Van ban so 45/2026/QĐ-UBND ỦY BAN NHÂN DÂN TỈNH NINH BÌNH CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM Độc lập - Tự do - Hạnh phúc Số: /2026/QĐ-UBND Ninh Bình, ngày tháng 4 năm 2026 QUYẾT ĐỊNH Bãi bỏ các quyết định của Ủy ban nhân dân tỉnh Ninh Bình Căn cứ Luật Tổ chức chính quyền địa phương số 72/2025/QH15; Căn cứ Luật Ban hành văn bản quy phạm pháp luật số 64/2025/QH15 được sửa đổi, bổ sung bởi Luật số ...",
+    "key_points": [],
+    "legal_fields": [],
+    "suggested_questions": [],
+    "entities": {
+      "authorities": [
+        "Văn bản Chính phủ",
+        "Ủy ban nhân dân ban hành"
+      ],
+      "signers": [],
+      "dates": {
+        "issuance": "14/04/2026",
+        "effective": "14/04/2026"
+      }
+    }
+  },
+  "model": "ollama/vistral",
+  "processed_at": "2026-05-12T00:57:08.740004"
+}
