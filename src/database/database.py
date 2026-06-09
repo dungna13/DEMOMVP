@@ -209,19 +209,40 @@ CREATE TABLE IF NOT EXISTS wiki_pages (
     updated_at       TEXT DEFAULT (datetime('now'))
 );
 
+-- ========== PHASE 4: CHAT HISTORY & LONG-TERM MEMORY ==========
+
+CREATE TABLE IF NOT EXISTS chat_sessions (
+    session_id  TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL,
+    created_at  TEXT DEFAULT (datetime('now')),
+    updated_at  TEXT DEFAULT (datetime('now')),
+    summary     TEXT
+);
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+    message_id  TEXT PRIMARY KEY,
+    session_id  TEXT NOT NULL REFERENCES chat_sessions(session_id) ON DELETE CASCADE,
+    role        TEXT CHECK(role IN ('user', 'assistant', 'system')),
+    content     TEXT NOT NULL,
+    timestamp   TEXT DEFAULT (datetime('now')),
+    tokens_used INTEGER
+);
+
 CREATE INDEX IF NOT EXISTS idx_wiki_slug     ON wiki_pages(slug);
 CREATE INDEX IF NOT EXISTS idx_wiki_type     ON wiki_pages(page_type);
 CREATE INDEX IF NOT EXISTS idx_wiki_doc_id   ON wiki_pages(document_id);
 CREATE INDEX IF NOT EXISTS idx_wiki_reviewed ON wiki_pages(reviewed);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id);
 """
 
 
 def init_db():
-    """Khởi tạo schema nếu chưa có (Phase 1 + Phase 2)."""
+    """Khởi tạo schema nếu chưa có (Phase 1 + Phase 2 + Phase 3 + Phase 4)."""
     conn = get_connection()
     try:
         conn.executescript(SCHEMA_SQL)
-        
+        conn.commit()  # executescript() tắt autocommit, cần commit thủ công
+
         # Cập nhật schema cho database cũ (nếu thiếu cột)
         try:
             conn.execute("ALTER TABLE documents ADD COLUMN relations_extracted INTEGER DEFAULT 0")
@@ -234,7 +255,9 @@ def init_db():
         try:
             conn.execute("ALTER TABLE documents ADD COLUMN wiki_compiled INTEGER DEFAULT 0")
         except Exception: pass
-        print("[DB] Schema ready (Phase 1 + Phase 2 + Phase 3).")
+
+        conn.commit()
+        print("[DB] Schema ready (Phase 1 + Phase 2 + Phase 3 + Phase 4).")
     finally:
         conn.close()
 

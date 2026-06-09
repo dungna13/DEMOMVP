@@ -151,6 +151,7 @@ def generate_qa_answer(
     question: str,
     context_chunks: List[Dict[str, Any]],
     chat_history: Optional[List[Dict]] = None,
+    summary: Optional[str] = None,
 ) -> Dict:
     """
     RAG Q&A: Sinh câu trả lời pháp luật dựa trên context chunks.
@@ -196,11 +197,14 @@ FORMAT:
 - Trích dẫn nguồn bằng [1], [2], ...
 - Cuối cùng liệt kê nguồn tham khảo."""
 
+    if summary:
+        system_prompt += f"\n\nBối cảnh hội thoại hiện tại (Ký ức dài hạn / Thông tin đã trao đổi trước đây): {summary}"
+
     messages = [{"role": "system", "content": system_prompt}]
 
     # Add chat history if available
     if chat_history:
-        for msg in chat_history[-4:]:  # Giữ 4 tin nhắn gần nhất
+        for msg in chat_history:  # Sử dụng toàn bộ chat_history được truyền vào (đã được cắt ở RAG Engine)
             messages.append(msg)
 
     messages.append({

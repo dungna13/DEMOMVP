@@ -156,6 +156,7 @@ def rerank_chunks(question: str, chunks: List[Dict], top_k: int = RAG_TOP_K_CONT
 
 def ask_question(
     question: str,
+    session_id: Optional[str] = None,
     chat_history: Optional[List[Dict]] = None,
     top_k_retrieve: int = RAG_TOP_K_RETRIEVE,
     top_k_context: int = RAG_TOP_K_CONTEXT,
@@ -169,6 +170,25 @@ def ask_question(
     """
     from src.core.ai_service import generate_qa_answer, is_ai_available
 
+    # Tải lịch sử và bối cảnh tóm tắt từ DB nếu có session_id
+    summary = None
+    if session_id:
+        try:
+            from src.services.chat_service import get_session_detail, get_chat_messages, save_chat_message
+            session_detail = get_session_detail(session_id)
+            if session_detail:
+                summary = session_detail.get("summary")
+
+            db_messages = get_chat_messages(session_id)
+            formatted_history = []
+            for msg in db_messages:
+                if msg["role"] in ("user", "assistant"):
+                    formatted_history.append({"role": msg["role"], "content": msg["content"]})
+            # Lấy tối đa 10 tin nhắn gần nhất (5 cặp QA) làm ngữ cảnh ngắn hạn cho RAG
+            chat_history = formatted_history[-10:]
+        except Exception as e:
+            logger.warning(f"[RAG] Failed to load session context: {e}")
+
     # Step 1: Retrieve
     raw_chunks = retrieve_context(question, top_k=top_k_retrieve)
 
@@ -180,13 +200,22 @@ def ask_question(
 
     # Nếu không tìm được context nào
     if not context_chunks:
+        answer = "Không tìm thấy quy định pháp luật liên quan trong cơ sở dữ liệu. Vui lòng thử diễn đạt lại câu hỏi hoặc sử dụng từ khóa cụ thể hơn."
+        if session_id:
+            try:
+                from src.services.chat_service import save_chat_message
+                save_chat_message(session_id, "user", question)
+                save_chat_message(session_id, "assistant", answer)
+            except Exception as e:
+                logger.warning(f"[RAG] Failed to save fallback messages to DB: {e}")
         return {
             "question": question,
-            "answer": "Không tìm thấy quy định pháp luật liên quan trong cơ sở dữ liệu. Vui lòng thử diễn đạt lại câu hỏi hoặc sử dụng từ khóa cụ thể hơn.",
+            "answer": answer,
             "citations": [],
             "model": "",
             "chunks_used": 0,
             "ai_available": is_ai_available(),
+            "session_id": session_id,
         }
 
     # Step 4: Generate answer
@@ -195,6 +224,7 @@ def ask_question(
             question=question,
             context_chunks=context_chunks,
             chat_history=chat_history,
+            summary=summary,
         )
     else:
         # Fallback: Hiển thị context chunks trực tiếp
@@ -218,8 +248,18 @@ def ask_question(
             "chunks_used": len(context_chunks),
         }
 
+    # Lưu tin nhắn hội thoại vào DB
+    if session_id:
+        try:
+            from src.services.chat_service import save_chat_message
+            save_chat_message(session_id, "user", question)
+            save_chat_message(session_id, "assistant", result["answer"])
+        except Exception as e:
+            logger.warning(f"[RAG] Failed to save conversation to DB: {e}")
+
     result["question"] = question
     result["ai_available"] = is_ai_available()
+    result["session_id"] = session_id
     return result
 
 

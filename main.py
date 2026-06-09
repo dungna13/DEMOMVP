@@ -15,7 +15,7 @@ os.environ.setdefault("PYTHONUTF8", "1")
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-from fastapi import FastAPI, Request, Query, Body, Response
+from fastapi import FastAPI, Request, Query, Body, Response, BackgroundTasks
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -317,21 +317,72 @@ async def api_similar_documents(doc_id: int, top_k: int = 5):
 
 
 @app.post("/api/qa")
-async def api_qa(request: Request):
+async def api_qa(request: Request, background_tasks: BackgroundTasks):
     """REST API: Hỏi đáp pháp luật (RAG)."""
     try:
         body = await request.json()
         question = body.get("question", "")
+        session_id = body.get("session_id")
         chat_history = body.get("chat_history", [])
 
         if not question.strip():
             return JSONResponse({"error": "Câu hỏi không được để trống"}, status_code=400)
 
         from src.core.rag_engine import ask_question
-        result = ask_question(question=question, chat_history=chat_history)
+        result = ask_question(question=question, session_id=session_id, chat_history=chat_history)
+
+        # Kích hoạt task chạy ngầm tóm tắt phiên trò chuyện nếu có session_id
+        if session_id:
+            from src.services.chat_service import summarize_session_if_needed
+            background_tasks.add_task(summarize_session_if_needed, session_id)
+
         return JSONResponse(content=result)
     except Exception as e:
         logger.error(f"[QA] Error: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/api/chat/sessions")
+async def api_get_sessions(user_id: str = "default_user"):
+    """REST API: Danh sách phiên hội thoại."""
+    try:
+        from src.services.chat_service import get_chat_sessions
+        return JSONResponse(content=get_chat_sessions(user_id))
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/api/chat/sessions")
+async def api_create_session(body: dict = Body(default={})):
+    """REST API: Tạo phiên hội thoại mới."""
+    try:
+        user_id = body.get("user_id", "default_user")
+        session_id = body.get("session_id")
+        from src.services.chat_service import create_chat_session
+        sess_id = create_chat_session(session_id=session_id, user_id=user_id)
+        return JSONResponse(content={"session_id": sess_id})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/api/chat/sessions/{session_id}/messages")
+async def api_get_messages(session_id: str):
+    """REST API: Lấy tin nhắn của phiên hội thoại."""
+    try:
+        from src.services.chat_service import get_chat_messages
+        return JSONResponse(content=get_chat_messages(session_id))
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.delete("/api/chat/sessions/{session_id}")
+async def api_delete_session(session_id: str):
+    """REST API: Xóa phiên hội thoại."""
+    try:
+        from src.services.chat_service import delete_chat_session
+        success = delete_chat_session(session_id)
+        return JSONResponse(content={"success": success})
+    except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
