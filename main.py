@@ -106,7 +106,7 @@ async def favicon():
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     """Trang chủ — search portal."""
-    return templates.TemplateResponse("index.html", {
+    return templates.TemplateResponse(request=request, name="index.html", context={
         "request": request,
         "query": "",
         "results": [],
@@ -161,7 +161,7 @@ async def search_page(
             year=year, effectiveness_status=status, page=page, page_size=10,
         )
 
-    return templates.TemplateResponse("index.html", {
+    return templates.TemplateResponse(request=request, name="index.html", context={
         "request": request,
         "query": q,
         "results": result["results"],
@@ -217,7 +217,7 @@ async def document_detail(request: Request, doc_id: int):
     except Exception:
         pass
 
-    return templates.TemplateResponse("document.html", {
+    return templates.TemplateResponse(request=request, name="document.html", context={
         "request": request,
         "doc": detail["document"],
         "chunks": detail["chunks"],
@@ -239,7 +239,7 @@ async def qa_page(request: Request):
     from src.core.rag_engine import get_suggested_questions
     from src.core.ai_service import is_ai_available
 
-    return templates.TemplateResponse("qa.html", {
+    return templates.TemplateResponse(request=request, name="qa.html", context={
         "request": request,
         "suggested_questions": get_suggested_questions(),
         "ai_available": is_ai_available(),
@@ -386,6 +386,75 @@ async def api_delete_session(session_id: str):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+
+@app.post("/api/documents/generate-draft")
+async def api_generate_draft(
+    body: dict = Body(default={})
+):
+    """REST API: Sinh văn bản hành chính (MD, DOCX, PDF) từ Q&A."""
+    try:
+        import uuid
+        from src.services.doc_generator import generate_document_draft
+        
+        question = body.get("question", "")
+        answer = body.get("answer", "")
+        template_type = body.get("template_type", "don_khieu_nai") # default to don_khieu_nai
+        
+        if not question or not answer:
+            return JSONResponse({"error": "Câu hỏi và Câu trả lời không được để trống"}, status_code=400)
+            
+        draft_id = f"draft_{uuid.uuid4().hex[:12]}"
+        
+        # Chạy tác vụ sinh văn bản trong một thread riêng để tránh block event loop
+        result = await asyncio.to_thread(
+            generate_document_draft, question, answer, template_type, draft_id
+        )
+        
+        # Trả về các thông tin file tương đối
+        return JSONResponse(content={
+            "success": True,
+            "draft_id": draft_id,
+            "template_type": template_type,
+            "has_pdf": bool(result.get("pdf_path")),
+            "content_preview": result.get("content_preview", "")
+        })
+    except Exception as e:
+        logger.error(f"[DocGen] Error: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/api/documents/download/{draft_id}")
+async def api_download_draft(
+    draft_id: str,
+    format: str = Query(default="pdf") # pdf | docx | md
+):
+    """REST API: Tải xuống văn bản hành chính đã sinh."""
+    from fastapi.responses import FileResponse
+    from src.services.doc_generator import DRAFTS_DIR
+    
+    ext = format.lower()
+    if ext not in ["pdf", "docx", "md"]:
+        return JSONResponse({"error": "Định dạng không hỗ trợ. Chỉ hỗ trợ pdf, docx, md"}, status_code=400)
+        
+    file_path = os.path.join(DRAFTS_DIR, f"{draft_id}.{ext}")
+    if not os.path.exists(file_path):
+        return JSONResponse({"error": f"Không tìm thấy file {draft_id}.{ext}"}, status_code=404)
+        
+    # Map media types
+    media_types = {
+        "pdf": "application/pdf",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "md": "text/markdown"
+    }
+    
+    filename = f"{draft_id}.{ext}"
+    return FileResponse(
+        path=file_path,
+        media_type=media_types[ext],
+        filename=filename
+    )
+
+
 @app.post("/api/ingest")
 async def api_ingest():
     """REST API: Trigger nạp lại dữ liệu từ thư mục data/."""
@@ -441,7 +510,7 @@ async def wiki_index(request: Request, field: Optional[str] = None, page: int = 
             "reviewed": r["reviewed"], "lint_status": r["lint_status"],
             "created_at": r["created_at"],
         })
-    return templates.TemplateResponse("wiki.html", {
+    return templates.TemplateResponse(request=request, name="wiki.html", context={
         "request": request, "wiki_pages": wiki_pages_list, "total": total,
         "status": status, "field_filter": field,
     })
@@ -462,7 +531,7 @@ async def wiki_page(request: Request, slug: str):
         except Exception:
             page[field] = []
 
-    return templates.TemplateResponse("wiki_page.html", {"request": request, "page": page})
+    return templates.TemplateResponse(request=request, name="wiki_page.html", context={"request": request, "page": page})
 
 
 # ─── Phase 3: REST API ────────────────────────────────────────────────────────

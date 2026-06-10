@@ -1,5 +1,5 @@
 """
-database.py — SQLite + FTS5 setup cho Phase 1 + Phase 2
+database.py — SQLite + FTS5 setup cho Phase 1 + Phase 2 + Phase 3 + Phase 4
 Schema theo HLD: documents, doc_sections, chunks, doc_relations, doc_legal_fields + FTS5
 """
 
@@ -228,6 +228,21 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     tokens_used INTEGER
 );
 
+-- ========== PHASE 4: LEGAL HIERARCHY & RELATIONS ==========
+CREATE TABLE IF NOT EXISTS document_types (
+    type_code TEXT PRIMARY KEY,
+    type_name TEXT NOT NULL,
+    hierarchy_rank INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS document_relations (
+    relation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_doc_id TEXT NOT NULL,
+    target_doc_id TEXT NOT NULL,
+    relation_type TEXT CHECK(relation_type IN ('CAN_CU', 'HUONG_DAN', 'SUA_DOI_BO_SUNG', 'THAY_THE')),
+    description TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_wiki_slug     ON wiki_pages(slug);
 CREATE INDEX IF NOT EXISTS idx_wiki_type     ON wiki_pages(page_type);
 CREATE INDEX IF NOT EXISTS idx_wiki_doc_id   ON wiki_pages(document_id);
@@ -242,6 +257,9 @@ def init_db():
     try:
         conn.executescript(SCHEMA_SQL)
         conn.commit()  # executescript() tắt autocommit, cần commit thủ công
+
+        # Seed document_types
+        seed_doc_types(conn)
 
         # Cập nhật schema cho database cũ (nếu thiếu cột)
         try:
@@ -262,9 +280,45 @@ def init_db():
         conn.close()
 
 
+def seed_doc_types(conn):
+    """Nạp dữ liệu xếp hạng hiệu lực pháp lý mặc định."""
+    default_types = [
+        ("hien_phap", "Hiến pháp", 15),
+        ("luat", "Luật", 14),
+        ("bo_luat", "Bộ luật", 14),
+        ("nghi_quyet_qh", "Nghị quyết của Quốc hội", 14),
+        ("phap_lenh", "Pháp lệnh", 13),
+        ("nghi_quyet_ubtvqh", "Nghị quyết của Ủy ban thường vụ Quốc hội", 13),
+        ("lenh", "Lệnh của Chủ tịch nước", 12),
+        ("quyet_dinh_ctn", "Quyết định của Chủ tịch nước", 12),
+        ("nghi_dinh", "Nghị định của Chính phủ", 11),
+        ("quyet_dinh_ttg", "Quyết định của Thủ tướng Chính phủ", 10),
+        ("nghi_quyet_hdtp", "Nghị quyết của Hội đồng Thẩm phán Tòa án nhân dân tối cao", 9),
+        ("thong_tu", "Thông tư", 8),
+        ("nghi_quyet_hdnd_tinh", "Nghị quyết của Hội đồng nhân dân cấp tỉnh", 7),
+        ("quyet_dinh_ubnd_tinh", "Quyết định của Ủy ban nhân dân cấp tỉnh", 6),
+        ("vban_qppl_dac_biet", "Văn bản quy phạm pháp luật của chính quyền địa phương đặc biệt", 5),
+        ("nghi_quyet_hdnd_huyen", "Nghị quyết của Hội đồng nhân dân cấp huyện", 4),
+        ("quyet_dinh_ubnd_huyen", "Quyết định của Ủy ban nhân dân cấp huyện", 3),
+        ("nghi_quyet_hdnd_xa", "Nghị quyết của Hội đồng nhân dân cấp xã", 2),
+        ("quyet_dinh_ubnd_xa", "Quyết định của Ủy ban nhân dân cấp xã", 1),
+        # Dự phòng
+        ("quyet_dinh", "Quyết định", 6),
+        ("nghi_quyet", "Nghị quyết", 7),
+        ("cong_van", "Công văn", 3),
+        ("chi_thi", "Chỉ thị", 6),
+        ("an_le", "Án lệ", 9),
+    ]
+    for code, name, rank in default_types:
+        conn.execute(
+            "INSERT OR IGNORE INTO document_types (type_code, type_name, hierarchy_rank) VALUES (?, ?, ?)",
+            (code, name, rank)
+        )
+    conn.commit()
+
+
 def is_empty() -> bool:
     """Kiểm tra DB có dữ liệu chưa."""
     with get_db() as conn:
         row = conn.execute("SELECT COUNT(*) as cnt FROM documents").fetchone()
         return row["cnt"] == 0
-

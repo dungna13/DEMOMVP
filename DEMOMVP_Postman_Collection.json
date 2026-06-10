@@ -1,0 +1,424 @@
+{
+	"info": {
+		"_postman_id": "1a0841fa-e95e-4bb5-8669-0faebce92bf3",
+		"name": "DEMOMVP Legal RAG API Collection",
+		"description": "Bộ sưu tập các yêu cầu API phục vụ tìm kiếm văn bản hành chính, hỏi đáp RAG pháp luật, quản lý phiên trò chuyện, soạn thảo văn bản hành chính tự động và quản lý Knowledge Wiki.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Hệ thống & Trạng thái",
+			"item": [
+				{
+					"name": "Lấy trạng thái hệ thống",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/system-status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"system-status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tìm kiếm Văn bản",
+			"item": [
+				{
+					"name": "Tìm kiếm Hybrid Search (BM25 + Vector + RRF)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/search?q=thu hồi đất&page=1&page_size=10&mode=balanced",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "thu hồi đất"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "page_size",
+									"value": "10"
+								},
+								{
+									"key": "mode",
+									"value": "balanced"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Chi tiết một văn bản",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/documents/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lấy quan hệ pháp lý của văn bản",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/documents/1/relations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"1",
+								"relations"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Hỏi đáp pháp luật & Lịch sử",
+			"item": [
+				{
+					"name": "Tạo phiên hội thoại mới",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": \"default_user\",\n    \"session_id\": \"sess_postman_test\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chat/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat",
+								"sessions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Hỏi đáp pháp luật (RAG QA)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"question\": \"Điều kiện thu hồi đất nông nghiệp là gì?\",\n    \"session_id\": \"sess_postman_test\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qa",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qa"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Danh sách phiên trò chuyện",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/chat/sessions?user_id=default_user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat",
+								"sessions"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "default_user"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lấy lịch sử tin nhắn của phiên",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/chat/sessions/sess_postman_test/messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat",
+								"sessions",
+								"sess_postman_test",
+								"messages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Xóa phiên hội thoại",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/chat/sessions/sess_postman_test",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat",
+								"sessions",
+								"sess_postman_test"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Soạn thảo văn bản hành chính",
+			"item": [
+				{
+					"name": "Sinh văn bản nháp (MD, DOCX, PDF)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"question\": \"Tôi muốn khiếu nại quyết định thu hồi đất số 123/QĐ-UBND của UBND Hưng Yên vì tôi thấy đền bù không thỏa đáng.\",\n    \"answer\": \"Quyết định thu hồi đất phải căn cứ theo quy định của Luật Đất đai và bảng giá đất mới.\",\n    \"template_type\": \"don_khieu_nai\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/documents/generate-draft",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"generate-draft"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Tải xuống văn bản PDF",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/documents/download/{{draft_id}}?format=pdf",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"download",
+								"{{draft_id}}"
+							],
+							"query": [
+								{
+									"key": "format",
+									"value": "pdf"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Tải xuống văn bản Word (DOCX)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/documents/download/{{draft_id}}?format=docx",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"download",
+								"{{draft_id}}"
+							],
+							"query": [
+								{
+									"key": "format",
+									"value": "docx"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Quản lý Knowledge Wiki",
+			"item": [
+				{
+					"name": "Trạng thái Knowledge Wiki",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/phase3/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"phase3",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Biên dịch toàn bộ Wiki",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/phase3/compile?skip_existing=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"phase3",
+								"compile"
+							],
+							"query": [
+								{
+									"key": "skip_existing",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Chạy Lint kiểm tra lỗi Wiki",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/phase3/lint",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"phase3",
+								"lint"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "draft_id",
+			"value": "nhập_draft_id_ở_đây",
+			"type": "string"
+		}
+	]
+}

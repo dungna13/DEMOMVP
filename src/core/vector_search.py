@@ -218,12 +218,38 @@ def hybrid_search(
                 if row:
                     doc_data[doc_id] = dict(row)
 
-    # ── Effectiveness Boosting ──
+    # Fetch all doc type hierarchy ranks
+    hierarchy_ranks = {}
+    try:
+        with get_db() as conn:
+            rows = conn.execute("SELECT type_code, hierarchy_rank FROM document_types").fetchall()
+            hierarchy_ranks = {r["type_code"]: r["hierarchy_rank"] for r in rows}
+    except Exception:
+        pass
+
+    # ── Effectiveness & Hierarchy & Time Boosting ──
     for doc_id in rrf_scores:
         if doc_id in doc_data:
             status = doc_data[doc_id].get("effectiveness_status", "")
             boost = EFFECTIVENESS_BOOST.get(status, 1.0)
-            rrf_scores[doc_id] *= boost
+            
+            # Hierarchy Rank boost
+            doc_type = doc_data[doc_id].get("doc_type", "")
+            rank_score = hierarchy_ranks.get(doc_type, 6)  # mặc định rank trung bình là 6
+            hierarchy_boost = 1.0 + (rank_score / 15.0)
+
+            # Time boost (Ưu tiên văn bản mới hơn)
+            time_boost = 1.0
+            issuing_date = doc_data[doc_id].get("issuing_date", "")
+            if issuing_date and len(issuing_date) >= 4:
+                try:
+                    # Trích xuất năm phát hành (định dạng DD/MM/YYYY hoặc YYYY-MM-DD)
+                    year_val = int(issuing_date.split('/')[-1]) if '/' in issuing_date else int(issuing_date[:4])
+                    time_boost = 1.0 + max(0, (year_val - 2000) / 100.0)
+                except Exception:
+                    pass
+
+            rrf_scores[doc_id] *= boost * hierarchy_boost * time_boost
 
     # Sort
     sorted_doc_ids = sorted(rrf_scores.keys(), key=lambda d: rrf_scores[d], reverse=True)

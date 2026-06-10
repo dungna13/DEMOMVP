@@ -9,9 +9,15 @@ import logging
 from typing import List, Dict, Optional, Any
 
 from src.config import (
-    LLM_MODEL, LLM_API_KEY, ANTHROPIC_API_KEY,
+    LLM_MODEL, LLM_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY,
     LEGAL_FIELDS, AUTO_TAG_CONFIDENCE_THRESHOLD,
     RAG_TEMPERATURE,
+)
+from prompts.system_prompt import (
+    RAG_QA_PROMPT,
+    SUMMARIZE_LVL1_PROMPT,
+    SUMMARIZE_LVL2_PROMPT,
+    AUTO_TAG_PROMPT,
 )
 
 logger = logging.getLogger(__name__)
@@ -36,6 +42,9 @@ def _call_llm(
         if ANTHROPIC_API_KEY:
             import os
             os.environ["ANTHROPIC_API_KEY"] = ANTHROPIC_API_KEY
+        if GEMINI_API_KEY:
+            import os
+            os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
 
         response = litellm.completion(
             model=model or LLM_MODEL,
@@ -65,28 +74,13 @@ def auto_summarize(content: str, doc_number: str = "", level: int = 1) -> str:
         # Level 1: Tóm tắt nhanh
         truncated = content[:6000]  # ~3000 tokens
         messages = [
-            {"role": "system", "content": """Bạn là chuyên gia pháp luật Việt Nam. 
-Tóm tắt văn bản pháp luật sau trong 2-3 câu ngắn gọn bằng tiếng Việt.
-Nêu rõ: (1) Đây là loại văn bản gì, (2) Nội dung chính, (3) Đối tượng áp dụng.
-Chỉ trả về phần tóm tắt, không thêm tiêu đề hay giải thích."""},
+            {"role": "system", "content": SUMMARIZE_LVL1_PROMPT},
             {"role": "user", "content": f"Văn bản {doc_number}:\n\n{truncated}"},
         ]
     else:
         # Level 2: Tóm tắt chi tiết
         messages = [
-            {"role": "system", "content": """Bạn là chuyên gia pháp luật Việt Nam.
-Tóm tắt văn bản pháp luật sau theo cấu trúc:
-## Tổng quan
-(1-2 câu mô tả chung)
-
-## Nội dung chính
-- Chương/Phần 1: ...
-- Chương/Phần 2: ...
-
-## Điểm mới/quan trọng
-- ...
-
-Trả lời bằng tiếng Việt, markdown format."""},
+            {"role": "system", "content": SUMMARIZE_LVL2_PROMPT},
             {"role": "user", "content": f"Văn bản {doc_number}:\n\n{content[:12000]}"},
         ]
 
@@ -108,16 +102,7 @@ def auto_tag(content: str, existing_fields: Optional[List[str]] = None) -> Dict:
     fields_str = ", ".join(fields_list)
 
     messages = [
-        {"role": "system", "content": f"""Bạn là chuyên gia phân loại văn bản pháp luật Việt Nam.
-Cho trước danh sách lĩnh vực: [{fields_str}]
-
-Phân tích nội dung văn bản và trả về JSON (chỉ JSON, không giải thích):
-{{"fields": ["lĩnh_vực_1", "lĩnh_vực_2"], "confidence": 0.XX}}
-
-Quy tắc:
-- Chọn 1-3 lĩnh vực phù hợp nhất
-- confidence từ 0.0 đến 1.0
-- Chỉ chọn lĩnh vực trong danh sách"""},
+        {"role": "system", "content": AUTO_TAG_PROMPT.format(fields_str=fields_str)},
         {"role": "user", "content": content[:3000]},
     ]
 
@@ -154,7 +139,7 @@ def generate_qa_answer(
     summary: Optional[str] = None,
 ) -> Dict:
     """
-    RAG Q&A: Sinh câu trả lời pháp luật dựa trên context chunks.
+    RAG Q&A: Sinh câu trả lời pháp luật dựa trên context chunks (Strict RAG với JSON Mode).
     Returns: {answer: str, citations: [...], model: str}
     """
     if not context_chunks:
@@ -167,35 +152,17 @@ def generate_qa_answer(
     # Build context string
     context_parts = []
     for i, chunk in enumerate(context_chunks):
-        doc_info = ""
-        if chunk.get("doc_number"):
-            doc_info = f" (Văn bản: {chunk['doc_number']}"
-            if chunk.get("dieu"):
-                doc_info += f", Điều {chunk['dieu']}"
-            if chunk.get("khoan"):
-                doc_info += f", Khoản {chunk['khoan']}"
-            doc_info += ")"
-
-        context_parts.append(f"[{i+1}]{doc_info}:\n{chunk['content']}")
+        doc_info = f"Tài liệu [{i+1}] (Số hiệu: {chunk.get('doc_number', 'N/A')}, Tên: {chunk.get('doc_title', 'N/A')}"
+        if chunk.get("dieu"):
+            doc_info += f", Điều {chunk['dieu']}"
+        if chunk.get("khoan"):
+            doc_info += f", Khoản {chunk['khoan']}"
+        doc_info += ")"
+        context_parts.append(f"{doc_info}:\n{chunk['content']}")
 
     context = "\n\n---\n\n".join(context_parts)
 
-    system_prompt = """Bạn là trợ lý pháp luật Việt Nam chuyên nghiệp. Trả lời câu hỏi dựa HOÀN TOÀN trên các tài liệu pháp lý được cung cấp.
-
-QUY TẮC BẮT BUỘC:
-1. Mọi khẳng định PHẢI có trích dẫn [số] tương ứng với tài liệu nguồn.
-2. PHẠM VI ÁP DỤNG: Nếu tài liệu tìm thấy chỉ quy định cho một đối tượng hoặc lĩnh vực đặc thù (ví dụ: chỉ dành cho thuyền viên, giáo viên, cán bộ y tế...), bạn PHẢI nêu rõ điều này ngay từ đầu câu trả lời để tránh người dùng hiểu lầm là quy định chung.
-3. Nếu KHÔNG tìm thấy căn cứ → nói rõ "Không tìm thấy quy định liên quan trong cơ sở dữ liệu".
-4. KHÔNG ĐƯỢC bịa thông tin.
-5. Phân biệt rõ quy định còn hiệu lực vs đã hết hiệu lực.
-6. Nếu có sửa đổi bổ sung → trích dẫn phiên bản mới nhất, ghi chú phiên bản cũ.
-7. Trả lời bằng tiếng Việt, rõ ràng, có cấu trúc.
-
-FORMAT:
-- Nêu rõ phạm vi áp dụng (Quy định chung hay đặc thù lĩnh vực).
-- Trả lời trực tiếp câu hỏi.
-- Trích dẫn nguồn bằng [1], [2], ...
-- Cuối cùng liệt kê nguồn tham khảo."""
+    system_prompt = RAG_QA_PROMPT
 
     if summary:
         system_prompt += f"\n\nBối cảnh hội thoại hiện tại (Ký ức dài hạn / Thông tin đã trao đổi trước đây): {summary}"
@@ -204,28 +171,94 @@ FORMAT:
 
     # Add chat history if available
     if chat_history:
-        for msg in chat_history:  # Sử dụng toàn bộ chat_history được truyền vào (đã được cắt ở RAG Engine)
+        for msg in chat_history:
             messages.append(msg)
 
     messages.append({
         "role": "user",
-        "content": f"Tài liệu tham khảo:\n\n{context}\n\n---\n\nCâu hỏi: {question}",
+        "content": f"Context:\n\n{context}\n\n---\n\nCâu hỏi: {question}",
     })
 
-    answer = _call_llm(messages, temperature=RAG_TEMPERATURE, max_tokens=2000)
+    response_content = ""
+    try:
+        import litellm
+        # Set API keys
+        if LLM_API_KEY:
+            import os
+            os.environ["OPENAI_API_KEY"] = LLM_API_KEY
+        if ANTHROPIC_API_KEY:
+            import os
+            os.environ["ANTHROPIC_API_KEY"] = ANTHROPIC_API_KEY
+        if GEMINI_API_KEY:
+            import os
+            os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
 
-    # Build citations
+        # Thử gọi JSON Mode nếu cấu hình phù hợp
+        response = litellm.completion(
+            model=LLM_MODEL,
+            messages=messages,
+            temperature=RAG_TEMPERATURE,
+            max_tokens=2000,
+            response_format={ "type": "json_object" } if ("gemini" in LLM_MODEL or "gpt" in LLM_MODEL) else None
+        )
+        response_content = response.choices[0].message.content.strip()
+    except Exception as e:
+        logger.error(f"[AI] RAG completion call failed: {e}")
+        # Fallback to general LLM call
+        response_content = _call_llm(messages, temperature=RAG_TEMPERATURE, max_tokens=2000)
+
+    # Parse JSON kết quả
+    answer = ""
     citations = []
-    for i, chunk in enumerate(context_chunks):
-        citations.append({
-            "index": i + 1,
-            "doc_id": chunk.get("document_id"),
-            "doc_number": chunk.get("doc_number", ""),
-            "doc_title": chunk.get("doc_title", ""),
-            "dieu": chunk.get("dieu"),
-            "khoan": chunk.get("khoan"),
-            "content_preview": chunk["content"][:200],
-        })
+    if response_content:
+        try:
+            # Dọn sạch block markdown ```json nếu LLM tự chèn thêm
+            clean_content = response_content
+            if clean_content.startswith("```"):
+                if clean_content.startswith("```json"):
+                    clean_content = clean_content[7:]
+                else:
+                    clean_content = clean_content[3:]
+                if clean_content.endswith("```"):
+                    clean_content = clean_content[:-3]
+                clean_content = clean_content.strip()
+
+            parsed = json.loads(clean_content)
+            answer = parsed.get("answer", "")
+            citations = parsed.get("citations", [])
+            # Map index number to match frontend expectations
+            for idx, cit in enumerate(citations, 1):
+                cit["index"] = idx
+                # Map field names if they mismatch template requirements
+                if "doc_id" not in cit:
+                    cit["doc_id"] = None
+                if "doc_number" not in cit and "document_number" in cit:
+                    cit["doc_number"] = cit["document_number"]
+                if "doc_title" not in cit and "document_name" in cit:
+                    cit["doc_title"] = cit["document_name"]
+                if "dieu" not in cit and "article" in cit:
+                    # extract number from article text
+                    import re
+                    m = re.search(r'\d+', cit["article"])
+                    cit["dieu"] = int(m.group(0)) if m else None
+                if "khoan" not in cit and "clause" in cit:
+                    import re
+                    m = re.search(r'\d+', cit["clause"])
+                    cit["khoan"] = int(m.group(0)) if m else None
+        except Exception as e:
+            logger.warning(f"[AI] Failed to parse JSON response: {e}. Raw: {response_content}")
+            answer = response_content
+            # Fallback citations from context_chunks
+            for i, chunk in enumerate(context_chunks):
+                citations.append({
+                    "index": i + 1,
+                    "doc_id": chunk.get("document_id"),
+                    "doc_number": chunk.get("doc_number", ""),
+                    "doc_title": chunk.get("doc_title", ""),
+                    "dieu": chunk.get("dieu"),
+                    "khoan": chunk.get("khoan"),
+                    "content_preview": chunk["content"][:200],
+                })
 
     if not answer:
         answer = "Xin lỗi, hệ thống AI tạm thời không khả dụng. Vui lòng thử lại sau hoặc cấu hình API key trong config.py."
@@ -242,6 +275,6 @@ def is_ai_available() -> bool:
     """Kiểm tra xem AI service có khả dụng không."""
     try:
         import litellm
-        return bool(LLM_API_KEY or ANTHROPIC_API_KEY)
+        return bool(LLM_API_KEY or ANTHROPIC_API_KEY or GEMINI_API_KEY)
     except ImportError:
         return False

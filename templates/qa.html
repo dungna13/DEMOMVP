@@ -391,10 +391,12 @@ async function selectSession(sessionId) {
         if (messages.length === 0) {
             if (welcomeDiv) welcomeDiv.style.display = 'block';
         } else {
-            messages.forEach(msg => {
-                // If assistant message, we check if it has structured citation block (but DB has flat text, we render it directly)
-                // In Phase 2, assistant responses contain citations at the bottom or inline, formatAnswer will parse them
-                addMessageToUI(msg.role, msg.content, []);
+            messages.forEach((msg, idx) => {
+                let qText = '';
+                if (msg.role === 'assistant' && idx > 0 && messages[idx - 1].role === 'user') {
+                    qText = messages[idx - 1].content;
+                }
+                addMessageToUI(msg.role, msg.content, [], qText);
             });
         }
     } catch (err) {
@@ -480,7 +482,7 @@ function askSuggestion(btn) {
   sendQuestion();
 }
 
-function addMessageToUI(role, content, citations) {
+function addMessageToUI(role, content, citations, question = '') {
   if (welcomeDiv) welcomeDiv.style.display = 'none';
 
   const msg = document.createElement('div');
@@ -517,11 +519,75 @@ function addMessageToUI(role, content, citations) {
       <div class="qa-message-content">
         <div class="qa-message-text">${formatted}</div>
         ${citationsHtml}
+        <div class="doc-generation-box" style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: var(--radius-md);" data-question="${escapeHtml(question)}" data-answer="${escapeHtml(content)}">
+          <div style="font-size: 12px; margin-bottom: 8px; font-weight: 600; color: var(--gold-400);">📄 Tạo văn bản hành chính từ tư vấn này:</div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <select class="template-select" style="background: var(--navy-900); color: var(--text-primary); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 4px 8px; font-size: 12px; font-family: 'Inter', sans-serif;">
+              <option value="don_khieu_nai">Đơn khiếu nại</option>
+              <option value="cong_van_tra_loi">Công văn trả lời</option>
+              <option value="to_trinh_mau">Tờ trình mẫu</option>
+            </select>
+            <button onclick="generateDocFromQA(this)" style="background: linear-gradient(135deg, var(--gold-500), var(--gold-400)); color: var(--navy-900); border: none; border-radius: var(--radius-sm); padding: 4px 12px; font-size: 12px; cursor: pointer; font-weight: 700; font-family: 'Inter', sans-serif;">Tạo văn bản</button>
+          </div>
+          <div class="doc-download-links" style="display: none; margin-top: 8px; gap: 10px; font-size: 12px; color: var(--text-muted);">
+            <span>Tải về: </span>
+            <a href="#" class="download-link docx" style="color: var(--gold-400); text-decoration: underline;" download>Word (.docx)</a> |
+            <a href="#" class="download-link pdf" style="color: var(--gold-400); text-decoration: underline;" download>PDF (.pdf)</a> |
+            <a href="#" class="download-link md" style="color: var(--gold-400); text-decoration: underline;" download>Markdown (.md)</a>
+          </div>
+        </div>
       </div>`;
   }
 
   messagesDiv.appendChild(msg);
   chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+async function generateDocFromQA(btn) {
+  const container = btn.closest('.doc-generation-box');
+  const question = container.getAttribute('data-question');
+  const answer = container.getAttribute('data-answer');
+  const select = container.querySelector('.template-select');
+  const templateType = select.value;
+  const downloadLinks = container.querySelector('.doc-download-links');
+  
+  if (!question || !answer) {
+    alert('Không tìm thấy dữ liệu câu hỏi hoặc trả lời.');
+    return;
+  }
+  
+  btn.disabled = true;
+  btn.textContent = 'Đang tạo...';
+  
+  try {
+    const resp = await fetch('/api/documents/generate-draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question: question,
+        answer: answer,
+        template_type: templateType
+      })
+    });
+    
+    const data = await resp.json();
+    if (data.success && data.draft_id) {
+      downloadLinks.style.display = 'flex';
+      downloadLinks.querySelector('.docx').href = `/api/documents/download/${data.draft_id}?format=docx`;
+      downloadLinks.querySelector('.pdf').href = `/api/documents/download/${data.draft_id}?format=pdf`;
+      downloadLinks.querySelector('.md').href = `/api/documents/download/${data.draft_id}?format=md`;
+      btn.textContent = 'Đã tạo xong!';
+    } else {
+      alert('Lỗi: ' + (data.error || 'Không thể tạo văn bản.'));
+      btn.disabled = false;
+      btn.textContent = 'Tạo văn bản';
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Lỗi kết nối khi tạo văn bản.');
+    btn.disabled = false;
+    btn.textContent = 'Tạo văn bản';
+  }
 }
 
 function addLoadingMessage() {
@@ -572,7 +638,7 @@ async function sendQuestion() {
     if (data.error) {
       addMessageToUI('assistant', '❌ Lỗi: ' + data.error, []);
     } else {
-      addMessageToUI('assistant', data.answer, data.citations);
+      addMessageToUI('assistant', data.answer, data.citations, question);
 
       // Reload sidebar ngay sau khi có câu trả lời (cập nhật updated_at)
       setTimeout(() => { loadSessions(); }, 800);

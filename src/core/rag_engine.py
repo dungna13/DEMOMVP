@@ -154,6 +154,70 @@ def rerank_chunks(question: str, chunks: List[Dict], top_k: int = RAG_TOP_K_CONT
     return chunks[:top_k]
 
 
+def expand_context_with_guidance(chunks: List[Dict]) -> List[Dict]:
+    """Tìm thêm các điều/khoản hướng dẫn thi hành (relation_type = 'huong_dan') và chèn vào context."""
+    if not chunks:
+        return chunks
+    
+    expanded = list(chunks)
+    doc_ids = list(set(c["document_id"] for c in chunks if c.get("document_id")))
+    
+    if not doc_ids:
+        return chunks
+        
+    guiding_docs = []
+    try:
+        with get_db() as conn:
+            placeholders = ",".join("?" * len(doc_ids))
+            rows = conn.execute(
+                f"""SELECT target_doc_id, target_doc_number, source_section, target_section
+                   FROM doc_relations
+                   WHERE source_doc_id IN ({placeholders}) AND relation_type = 'huong_dan' AND target_doc_id IS NOT NULL""",
+                doc_ids
+            ).fetchall()
+            for r in rows:
+                guiding_docs.append(dict(r))
+    except Exception as e:
+        logger.warning(f"[RAG] Context expansion lookup failed: {e}")
+        
+    if not guiding_docs:
+        return chunks
+
+    target_doc_ids = list(set(g["target_doc_id"] for g in guiding_docs))
+    guiding_chunks = []
+    try:
+        with get_db() as conn:
+            placeholders = ",".join("?" * len(target_doc_ids))
+            rows = conn.execute(
+                f"""SELECT c.*, d.doc_number, d.title as doc_title, d.doc_type, d.effectiveness_status
+                   FROM chunks c
+                   JOIN documents d ON c.document_id = d.id
+                   WHERE c.document_id IN ({placeholders})""",
+                target_doc_ids
+            ).fetchall()
+            for r in rows:
+                c = dict(r)
+                c["source"] = "context_expansion"
+                guiding_chunks.append(c)
+    except Exception as e:
+        logger.warning(f"[RAG] Failed to load guiding chunks: {e}")
+
+    if not guiding_chunks:
+        return chunks
+
+    added_count = 0
+    for g in guiding_docs:
+        matched = [c for c in guiding_chunks if c["document_id"] == g["target_doc_id"]]
+        if matched:
+            for c in matched[:2]:
+                if not any(x["document_id"] == c["document_id"] and x.get("dieu") == c.get("dieu") and x.get("khoan") == c.get("khoan") for x in expanded):
+                    expanded.append(c)
+                    added_count += 1
+                    
+    logger.info(f"[RAG] Context expansion added {added_count} guiding chunks")
+    return expanded
+
+
 def ask_question(
     question: str,
     session_id: Optional[str] = None,
@@ -166,7 +230,8 @@ def ask_question(
     1. Retrieve relevant chunks
     2. Enrich with metadata
     3. Re-rank
-    4. Generate answer with citations
+    4. Expand Context (Tìm văn bản hướng dẫn)
+    5. Generate answer with citations
     """
     from src.core.ai_service import generate_qa_answer, is_ai_available
 
@@ -198,6 +263,12 @@ def ask_question(
     # Step 3: Re-rank
     context_chunks = rerank_chunks(question, enriched_chunks, top_k=top_k_context)
 
+    # Step 4: Context Expansion (Tự động mở rộng thêm văn bản hướng dẫn thi hành)
+    try:
+        context_chunks = expand_context_with_guidance(context_chunks)
+    except Exception as e:
+        logger.warning(f"[RAG] Context expansion error: {e}")
+
     # Nếu không tìm được context nào
     if not context_chunks:
         answer = "Không tìm thấy quy định pháp luật liên quan trong cơ sở dữ liệu. Vui lòng thử diễn đạt lại câu hỏi hoặc sử dụng từ khóa cụ thể hơn."
@@ -218,7 +289,7 @@ def ask_question(
             "session_id": session_id,
         }
 
-    # Step 4: Generate answer
+    # Step 5: Generate answer
     if is_ai_available():
         result = generate_qa_answer(
             question=question,
