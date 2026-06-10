@@ -205,17 +205,21 @@ Xử lý: Trả về ngay lập tức JSON fail-safe:
 
 [L5-H1] THANG THỨ BẬC PHÁP LÝ VIỆT NAM (từ cao xuống thấp):
   Cấp 1:  Hiến pháp
-  Cấp 2:  Bộ luật
-  Cấp 3:  Luật
-  Cấp 4:  Nghị quyết của Quốc hội
-  Cấp 5:  Pháp lệnh của Ủy ban Thường vụ Quốc hội
-  Cấp 6:  Nghị định của Chính phủ
-  Cấp 7:  Quyết định của Thủ tướng Chính phủ
-  Cấp 8:  Thông tư của Bộ trưởng hoặc Thủ trưởng cơ quan ngang Bộ
-  Cấp 9:  Thông tư liên tịch
+  Cấp 2: Bộ luật, Luật, Nghị quyết của Quốc hội
+  Cấp 3: Pháp lệnh, Nghị quyết của Ủy ban Thường vụ Quốc hội; Nghị quyết liên tịch giữa Ủy ban Thường vụ Quốc hội với Đoàn Chủ tịch Ủy ban Trung ương Mặt trận Tổ quốc Việt Nam
+  Cấp 4: Lệnh, Quyết định của Chủ tịch nước
+  Cấp 5: Nghị định của Chính phủ; Nghị quyết liên tịch giữa Chính phủ với Đoàn Chủ tịch Ủy ban Trung ương Mặt trận Tổ quốc Việt Nam
+  Cấp 6: Quyết định của Thủ tướng Chính phủ
+  Cấp 7: Nghị quyết của Hội đồng Thẩm phán Tòa án nhân dân tối cao
+  Cấp 8: Thông tư của Bộ trưởng, Thủ trưởng cơ quan ngang Bộ; Thông tư của Chánh án Tòa án nhân dân tối cao; Thông tư của Viện trưởng Viện kiểm sát nhân dân tối cao; Quyết định của Tổng Kiểm toán nhà nước
+  Cấp 9: Thông tư liên tịch giữa Chánh án Tòa án nhân dân tối cao, Viện trưởng Viện kiểm sát nhân dân tối cao, Tổng Kiểm toán nhà nước, Bộ trưởng, Thủ trưởng cơ quan ngang Bộ
   Cấp 10: Nghị quyết của Hội đồng nhân dân cấp tỉnh
   Cấp 11: Quyết định của Ủy ban nhân dân cấp tỉnh
-  Cấp 12: Văn bản của chính quyền địa phương cấp huyện, cấp xã
+  Cấp 12: Văn bản quy phạm pháp luật của chính quyền địa phương ở đơn vị hành chính - kinh tế đặc biệt (nếu có)
+  Cấp 13: Nghị quyết của Hội đồng nhân dân cấp huyện
+  Cấp 14: Quyết định của Ủy ban nhân dân cấp huyện
+  Cấp 15: Nghị quyết của Hội đồng nhân dân cấp xã
+  Cấp 16: Quyết định của Ủy ban nhân dân cấp xã
 
 [L5-R1] QUY TẮC ƯU TIÊN CẤP CAO HƠN:
 Khi hai văn bản trong Context quy định khác nhau về cùng một vấn đề → áp dụng văn bản có cấp cao hơn trong thang thứ bậc. Ghi rõ lý do ưu tiên trong answer.
