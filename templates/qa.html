@@ -2,57 +2,245 @@
 
 {% block title %}Hỏi đáp Pháp luật — AI Assistant{% endblock %}
 
+{% block head %}
+<style>
+.qa-layout {
+    display: flex;
+    gap: 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 2rem;
+    height: calc(100vh - 128px);
+}
+.qa-sidebar {
+    width: 300px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    flex-shrink: 0;
+    backdrop-filter: blur(12px);
+}
+.qa-main-chat {
+    flex: 1;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    min-width: 0;
+    backdrop-filter: blur(12px);
+    height: 100%;
+}
+.new-chat-btn {
+    background: linear-gradient(135deg, var(--gold-500), var(--gold-400));
+    color: var(--navy-900);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all var(--transition);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Inter', sans-serif;
+}
+.new-chat-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--gold-glow);
+}
+.session-list-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+.session-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-right: -10px;
+    padding-right: 10px;
+}
+.session-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.session-item:hover {
+    background: var(--glass-hover);
+    border-color: rgba(201, 168, 76, 0.15);
+}
+.session-item.active {
+    background: rgba(201, 168, 76, 0.08);
+    border-color: rgba(201, 168, 76, 0.4);
+    box-shadow: inset 0 0 10px rgba(201, 168, 76, 0.05);
+}
+.session-item-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+.session-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+    color: var(--gold-400);
+}
+.session-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.session-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+.session-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+.delete-session-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition);
+    opacity: 0.3;
+}
+.session-item:hover .delete-session-btn {
+    opacity: 0.8;
+}
+.delete-session-btn:hover {
+    color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.1);
+    opacity: 1 !important;
+}
+
+/* Custom scroll for sidebar */
+.session-list::-webkit-scrollbar {
+    width: 4px;
+}
+.session-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.session-list::-webkit-scrollbar-thumb {
+    background: var(--navy-600);
+    border-radius: 2px;
+}
+.session-list::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-500);
+}
+
+@media (max-width: 900px) {
+    .qa-layout {
+        flex-direction: column;
+        height: auto;
+        padding: 16px 1rem;
+    }
+    .qa-sidebar {
+        width: 100%;
+        max-height: 220px;
+        margin-bottom: 16px;
+    }
+    .qa-main-chat {
+        height: 600px;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="qa-container">
+<div class="qa-layout">
 
-  <div class="qa-header">
-    <div class="qa-header-badge">💬 RAG · Retrieval-Augmented Generation</div>
-    <h1 class="qa-title">Hỏi đáp Pháp luật</h1>
-    <p class="qa-subtitle">
-      Đặt câu hỏi về quy định pháp luật — AI sẽ tìm kiếm và trích dẫn chính xác từ các văn bản trong hệ thống.
-    </p>
-    {% if not ai_available %}
-    <div class="qa-warning">
-      ⚠️ AI chưa được cấu hình. Hệ thống sẽ hiển thị các đoạn văn bản liên quan thay vì câu trả lời tổng hợp.
-      <br/>Cấu hình API key (OPENAI_API_KEY) trong <code>config.py</code> hoặc biến môi trường để kích hoạt.
+  <!-- LEFT SIDEBAR -->
+  <div class="qa-sidebar">
+    <button class="new-chat-btn" onclick="startNewSession()">
+      <span>+</span> Cuộc trò chuyện mới
+    </button>
+    <div class="session-list-title">Lịch sử trò chuyện</div>
+    <div class="session-list" id="session-list">
+      <!-- Session items loaded dynamically -->
     </div>
-    {% endif %}
   </div>
 
-  <!-- CHAT AREA -->
-  <div class="qa-chat-area" id="qa-chat-area">
-    <div class="qa-welcome" id="qa-welcome">
-      <div class="qa-welcome-icon">⚖️</div>
-      <h2>Xin chào! Tôi có thể giúp gì?</h2>
-      <p>Hãy đặt câu hỏi về quy định pháp luật Việt Nam. Tôi sẽ tìm kiếm trong cơ sở dữ liệu và trả lời kèm trích dẫn.</p>
-
-      <div class="qa-suggestions">
-        <div class="qa-suggestions-title">Câu hỏi gợi ý:</div>
-        {% for q in suggested_questions %}
-        <button class="qa-suggestion-chip" onclick="askSuggestion(this)">{{ q }}</button>
-        {% endfor %}
+  <!-- RIGHT MAIN CHAT AREA -->
+  <div class="qa-main-chat">
+    <div class="qa-header" style="text-align: left; padding: 0 0 16px 0; border-bottom: 1px solid var(--glass-border);">
+      <div class="qa-header-badge">💬 RAG · Trí nhớ dài hạn</div>
+      <h1 class="qa-title" style="margin-bottom: 4px; text-align: left; background: linear-gradient(135deg,#fff 30%,#c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Hỏi đáp Pháp luật</h1>
+      <p class="qa-subtitle" style="margin: 0; text-align: left; font-size: 13px;">
+        Hội thoại thông minh tự động lưu lịch sử và tóm tắt ngữ cảnh bằng LLM.
+      </p>
+      {% if not ai_available %}
+      <div class="qa-warning" style="margin-top: 10px; padding: 8px 12px;">
+        ⚠️ AI chưa được cấu hình. Hệ thống sẽ hiển thị các đoạn văn bản liên quan thay vì câu trả lời tổng hợp.
       </div>
+      {% endif %}
     </div>
 
-    <div class="qa-messages" id="qa-messages"></div>
-  </div>
+    <!-- CHAT AREA -->
+    <div class="qa-chat-area" id="qa-chat-area" style="flex: 1; overflow-y: auto; padding: 20px 0;">
+      <div class="qa-welcome" id="qa-welcome" style="display: none;">
+        <div class="qa-welcome-icon">⚖️</div>
+        <h2>Xin chào! Tôi có thể giúp gì?</h2>
+        <p>Hãy đặt câu hỏi về quy định pháp luật Việt Nam. Tôi sẽ tìm kiếm trong cơ sở dữ liệu và trả lời kèm trích dẫn.</p>
 
-  <!-- INPUT AREA -->
-  <div class="qa-input-area">
-    <div class="qa-input-wrapper">
-      <textarea
-        id="qa-input"
-        class="qa-input"
-        placeholder="Nhập câu hỏi pháp luật..."
-        rows="1"
-        maxlength="2000"
-      ></textarea>
-      <button id="qa-send-btn" class="qa-send-btn" onclick="sendQuestion()">
-        <span class="qa-send-icon">➤</span>
-      </button>
+        <div class="qa-suggestions">
+          <div class="qa-suggestions-title">Câu hỏi gợi ý:</div>
+          {% for q in suggested_questions %}
+          <button class="qa-suggestion-chip" onclick="askSuggestion(this)">{{ q }}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="qa-messages" id="qa-messages"></div>
     </div>
-    <div class="qa-input-hint">
-      Nhấn Enter để gửi · Shift+Enter để xuống dòng · Câu trả lời dựa trên văn bản trong hệ thống
+
+    <!-- INPUT AREA -->
+    <div class="qa-input-area" style="padding-top: 16px; border-top: 1px solid var(--glass-border);">
+      <div class="qa-input-wrapper">
+        <textarea
+          id="qa-input"
+          class="qa-input"
+          placeholder="Nhập câu hỏi pháp luật..."
+          rows="1"
+          maxlength="2000"
+        ></textarea>
+        <button id="qa-send-btn" class="qa-send-btn" onclick="sendQuestion()">
+          <span class="qa-send-icon">➤</span>
+        </button>
+      </div>
+      <div class="qa-input-hint">
+        Nhấn Enter để gửi · Shift+Enter để xuống dòng · Hệ thống tự động ghi nhớ bối cảnh
+      </div>
     </div>
   </div>
 
@@ -64,8 +252,9 @@ const messagesDiv = document.getElementById('qa-messages');
 const welcomeDiv = document.getElementById('qa-welcome');
 const inputEl = document.getElementById('qa-input');
 const sendBtn = document.getElementById('qa-send-btn');
+const sessionListDiv = document.getElementById('session-list');
 
-let chatHistory = [];
+let currentSessionId = localStorage.getItem('current_session_id') || '';
 let isLoading = false;
 
 // Auto-resize textarea
@@ -82,12 +271,216 @@ inputEl.addEventListener('keydown', function(e) {
   }
 });
 
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', () => {
+    initChat();
+});
+
+async function initChat() {
+    // Tải danh sách session trước
+    const sessions = await loadSessions();
+
+    // Kiểm tra xem session từ LocalStorage có còn tồn tại trong DB không
+    if (currentSessionId) {
+        const exists = sessions && sessions.some(s => s.session_id === currentSessionId);
+        if (exists) {
+            await selectSession(currentSessionId);
+            return;
+        } else {
+            // Session không còn tồn tại, xóa khỏi LocalStorage
+            localStorage.removeItem('current_session_id');
+            currentSessionId = '';
+        }
+    }
+
+    // Nếu có session khác đang tồn tại, chọn cái đầu tiên
+    if (sessions && sessions.length > 0) {
+        await selectSession(sessions[0].session_id);
+    } else {
+        // Không có session nào, tạo mới
+        await startNewSession();
+    }
+}
+
+// Load sessions list — trả về mảng sessions để initChat sử dụng
+async function loadSessions() {
+    try {
+        const resp = await fetch('/api/chat/sessions');
+        if (!resp.ok) return [];
+        const sessions = await resp.json();
+
+        sessionListDiv.innerHTML = '';
+
+        if (!Array.isArray(sessions) || sessions.length === 0) {
+            // Empty state
+            sessionListDiv.innerHTML = `
+                <div style="text-align:center; padding: 24px 8px; color: var(--text-muted); font-size: 12px; line-height: 1.6;">
+                    <div style="font-size: 24px; margin-bottom: 8px; opacity: 0.4;">💬</div>
+                    Chưa có hội thoại nào.<br/>Bấm <strong>Cuộc trò chuyện mới</strong> để bắt đầu.
+                </div>`;
+            return [];
+        }
+
+        sessions.forEach(sess => {
+            const isActive = sess.session_id === currentSessionId;
+            const item = document.createElement('div');
+            item.className = `session-item ${isActive ? 'active' : ''}`;
+            item.setAttribute('data-id', sess.session_id);
+            item.onclick = () => selectSession(sess.session_id);
+
+            // Format time
+            let timeStr = '';
+            if (sess.updated_at) {
+                const parts = sess.updated_at.split(' ');
+                if (parts.length === 2) {
+                    const timeParts = parts[1].split(':');
+                    const dateParts = parts[0].split('-');
+                    timeStr = `${timeParts[0]}:${timeParts[1]} · ${dateParts[2]}/${dateParts[1]}`;
+                } else {
+                    timeStr = sess.updated_at;
+                }
+            }
+
+            // Title: summary or default
+            const shortId = sess.session_id.substring(5, 11).toUpperCase();
+            const title = sess.summary ? sess.summary : `Hội thoại #${shortId}`;
+
+            item.innerHTML = `
+                <div class="session-item-content">
+                    <span class="session-icon">💬</span>
+                    <div class="session-info">
+                        <div class="session-title" title="${escapeHtml(title)}">${escapeHtml(title)}</div>
+                        <div class="session-time">${timeStr}</div>
+                    </div>
+                </div>
+                <button class="delete-session-btn" onclick="deleteSession(event, '${escapeHtml(sess.session_id)}')" title="Xóa hội thoại">🗑️</button>
+            `;
+            sessionListDiv.appendChild(item);
+        });
+
+        return sessions;
+    } catch (err) {
+        console.error("Lỗi khi tải danh sách hội thoại:", err);
+        return [];
+    }
+}
+
+// Select a session to load messages
+async function selectSession(sessionId) {
+    currentSessionId = sessionId;
+    localStorage.setItem('current_session_id', sessionId);
+    
+    // Update active class in list
+    const items = sessionListDiv.querySelectorAll('.session-item');
+    items.forEach(item => {
+        if (item.getAttribute('data-id') === sessionId) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+    
+    // Load messages
+    messagesDiv.innerHTML = '';
+    if (welcomeDiv) welcomeDiv.style.display = 'none';
+    
+    try {
+        const resp = await fetch(`/api/chat/sessions/${sessionId}/messages`);
+        const messages = await resp.json();
+        
+        if (messages.length === 0) {
+            if (welcomeDiv) welcomeDiv.style.display = 'block';
+        } else {
+            messages.forEach(msg => {
+                // If assistant message, we check if it has structured citation block (but DB has flat text, we render it directly)
+                // In Phase 2, assistant responses contain citations at the bottom or inline, formatAnswer will parse them
+                addMessageToUI(msg.role, msg.content, []);
+            });
+        }
+    } catch (err) {
+        console.error("Lỗi khi tải tin nhắn của hội thoại:", err);
+        addMessageToUI('assistant', '❌ Lỗi tải lịch sử hội thoại. Vui lòng chọn lại.', []);
+    }
+}
+
+// Start a new chat session (guard against infinite loop)
+let _isCreatingSession = false;
+async function startNewSession() {
+    if (_isCreatingSession) return;
+    _isCreatingSession = true;
+
+    const id = `sess_${Math.random().toString(36).substring(2, 14)}`;
+    try {
+        const resp = await fetch('/api/chat/sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: id })
+        });
+        if (!resp.ok) throw new Error('Server error: ' + resp.status);
+        const data = await resp.json();
+        if (!data.session_id) throw new Error('No session_id in response');
+
+        currentSessionId = data.session_id;
+        localStorage.setItem('current_session_id', currentSessionId);
+
+        // Reset UI
+        messagesDiv.innerHTML = '';
+        if (welcomeDiv) welcomeDiv.style.display = 'block';
+
+        await loadSessions();
+        // Mark active without reloading messages (it's new, empty session)
+        const items = sessionListDiv.querySelectorAll('.session-item');
+        items.forEach(item => {
+            item.classList.toggle('active', item.getAttribute('data-id') === currentSessionId);
+        });
+    } catch (err) {
+        console.error("Lỗi khi tạo hội thoại mới:", err);
+    } finally {
+        _isCreatingSession = false;
+    }
+}
+
+// Delete a session
+async function deleteSession(event, sessionId) {
+    event.stopPropagation();
+    if (!confirm("Bạn có chắc chắn muốn xóa cuộc hội thoại này?")) return;
+
+    try {
+        const resp = await fetch(`/api/chat/sessions/${sessionId}`, {
+            method: 'DELETE'
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+            if (sessionId === currentSessionId) {
+                localStorage.removeItem('current_session_id');
+                currentSessionId = '';
+                // Tải lại danh sách và chọn session đầu tiên còn lại (nếu có), không dùng initChat tránh loop
+                const sessions = await loadSessions();
+                if (sessions && sessions.length > 0) {
+                    await selectSession(sessions[0].session_id);
+                } else {
+                    messagesDiv.innerHTML = '';
+                    if (welcomeDiv) welcomeDiv.style.display = 'block';
+                    await startNewSession();
+                }
+            } else {
+                await loadSessions();
+            }
+        } else {
+            alert("Không thể xóa cuộc trò chuyện.");
+        }
+    } catch (err) {
+        console.error("Lỗi khi xóa hội thoại:", err);
+    }
+}
+
 function askSuggestion(btn) {
   inputEl.value = btn.textContent.trim();
   sendQuestion();
 }
 
-function addMessage(role, content, citations) {
+function addMessageToUI(role, content, citations) {
   if (welcomeDiv) welcomeDiv.style.display = 'none';
 
   const msg = document.createElement('div');
@@ -151,12 +544,16 @@ async function sendQuestion() {
   const question = inputEl.value.trim();
   if (!question || isLoading) return;
 
+  if (!currentSessionId) {
+      await startNewSession();
+  }
+
   isLoading = true;
   sendBtn.disabled = true;
   inputEl.value = '';
   inputEl.style.height = 'auto';
 
-  addMessage('user', question);
+  addMessageToUI('user', question, []);
   const loadingMsg = addLoadingMessage();
 
   try {
@@ -165,7 +562,7 @@ async function sendQuestion() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         question: question,
-        chat_history: chatHistory.slice(-4),
+        session_id: currentSessionId
       }),
     });
 
@@ -173,15 +570,18 @@ async function sendQuestion() {
     loadingMsg.remove();
 
     if (data.error) {
-      addMessage('assistant', '❌ Lỗi: ' + data.error);
+      addMessageToUI('assistant', '❌ Lỗi: ' + data.error, []);
     } else {
-      addMessage('assistant', data.answer, data.citations);
-      chatHistory.push({ role: 'user', content: question });
-      chatHistory.push({ role: 'assistant', content: data.answer });
+      addMessageToUI('assistant', data.answer, data.citations);
+
+      // Reload sidebar ngay sau khi có câu trả lời (cập nhật updated_at)
+      setTimeout(() => { loadSessions(); }, 800);
+      // Reload lần 2 sau 5s để bắt kịp tóm tắt LLM chạy ngầm
+      setTimeout(() => { loadSessions(); }, 5000);
     }
   } catch (err) {
     loadingMsg.remove();
-    addMessage('assistant', '❌ Lỗi kết nối. Vui lòng thử lại.');
+    addMessageToUI('assistant', '❌ Lỗi kết nối. Vui lòng thử lại.', []);
   }
 
   isLoading = false;
@@ -190,13 +590,14 @@ async function sendQuestion() {
 }
 
 function escapeHtml(text) {
+  if (!text) return '';
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
 }
 
 function formatAnswer(text) {
-  // Basic markdown-like formatting
+  if (!text) return '';
   let html = escapeHtml(text);
   // Bold
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -214,5 +615,4 @@ function formatAnswer(text) {
   return html;
 }
 </script>
-
 {% endblock %}
