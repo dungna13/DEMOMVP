@@ -52,11 +52,8 @@ def _build_fts_query(query: str) -> str:
     words = re.findall(r'[\w\d/\-]+', query, re.UNICODE)
     if not words:
         return '""'
-    # Dùng NEAR cho nhiều từ, hoặc OR nếu chỉ 1 từ
-    if len(words) == 1:
-        return f'"{words[0]}"*'
-    terms = " OR ".join(f'"{w}"*' for w in words)
-    return terms
+    # Dùng implicit AND (space-separated) để chỉ hiển thị các tài liệu chứa đầy đủ/hầu hết từ khóa
+    return " ".join(f'"{w}"*' for w in words)
 
 
 def search_documents(

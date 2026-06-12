@@ -16,7 +16,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from fastapi import FastAPI, Request, Query, Body, Response, BackgroundTasks
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from typing import Optional
@@ -340,6 +340,37 @@ async def api_qa(request: Request, background_tasks: BackgroundTasks):
     except Exception as e:
         logger.error(f"[QA] Error: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/api/qa/stream")
+async def stream_qa_answer(
+    question: str,
+    session_id: Optional[str] = None,
+):
+    """
+    SSE streaming endpoint cho Q&A.
+    Frontend nhận từng event: {"type": "progress"|"answer", "content": "...", "citations": [...]}
+    """
+    from src.core.rag_engine import ask_question_stream
+
+    async def event_generator():
+        try:
+            async for chunk in ask_question_stream(question, session_id):
+                yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
+        except Exception as e:
+            error_event = {"type": "error", "content": str(e)}
+            yield f"data: {json.dumps(error_event)}\n\n"
+        finally:
+            yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.get("/api/chat/sessions")

@@ -120,9 +120,11 @@ def _vector_search_by_doc(
             effectiveness_status=effectiveness_status,
         )
 
-        # Nhóm theo document_id, lấy score cao nhất
+        # Nhóm theo document_id, lấy score cao nhất, lọc theo threshold >= 0.4
         doc_scores: Dict[int, Dict] = {}
         for result in chunk_results:
+            if result.get("score", 0.0) < 0.4:
+                continue
             doc_id = result["payload"]["document_id"]
             if doc_id not in doc_scores or result["score"] > doc_scores[doc_id]["vector_score"]:
                 doc_scores[doc_id] = {

@@ -37,23 +37,117 @@ def get_text_hash(text: str) -> str:
     normalized = " ".join(text.split())
     return hashlib.md5(normalized.encode('utf-8')).hexdigest()
 
+def parse_clean_title(text: str, doc_type: str, doc_number: str) -> str:
+    # 1. Chuẩn hóa khoảng trắng và dòng
+    lines = [line.strip() for line in text.split('\n') if line.strip()]
+    
+    # 2. Tìm các dòng chứa loại văn bản như QUYẾT ĐỊNH, NGHỊ QUYẾT, THÔNG TƯ, NGHỊ ĐỊNH, LUẬT, CHỈ THỊ
+    type_keywords = ["QUYẾT ĐỊNH", "NGHỊ QUYẾT", "THÔNG TƯ", "NGHỊ ĐỊNH", "LUẬT", "CHỈ THỊ", "THÔNG BÁO", "HƯỚNG DẪN", "QUYET DINH", "NGHI QUYET", "THONG TU", "NGHI DINH", "LUAT", "CHI THI", "THONG BAO", "HUONG DAN"]
+    
+    for idx, line in enumerate(lines):
+        line_upper = line.upper()
+        for kw in type_keywords:
+            if line_upper == kw or line_upper.startswith(kw + " "):
+                if len(line) > len(kw) + 5:
+                    title_candidate = line[len(kw):].strip()
+                    title_candidate = re.sub(r'^[:\-\s\d/]+', '', title_candidate)
+                    if len(title_candidate) > 10:
+                        return title_candidate
+                
+                title_lines = []
+                for j in range(idx + 1, min(idx + 5, len(lines))):
+                    next_line = lines[j]
+                    next_line_upper = next_line.upper()
+                    if any(next_line_upper.startswith(w) for w in ["CĂN CỨ", "CAN CU", "ĐIỀU 1", "DIEU 1", "THỦ TƯỚNG", "THU TUONG", "BỘ TRƯỞNG", "BO TRUONG", "KÍNH GỬI", "KINH GUI"]):
+                        break
+                    if "NGƯỜI KÝ" in next_line_upper or "KÝ BỞI" in next_line_upper or "CỘNG HÒA" in next_line_upper or "ĐỘC LẬP" in next_line_upper:
+                        continue
+                    title_lines.append(next_line)
+                
+                if title_lines:
+                    full_title = " ".join(title_lines).strip()
+                    full_title = re.sub(r'\s+', ' ', full_title)
+                    if len(full_title) > 300:
+                        full_title = full_title[:297] + "..."
+                    if len(full_title) > 10:
+                        return full_title
+
+    # 3. Tìm các mẫu V/v, Vlv, Về việc
+    vv_patterns = [
+        r'(?:V/v|Vlv|V\s*l\s*v|Về\s+việc|Ve\s+viec)[:\-\s]+(.*?)(?:\n|$)',
+        r'(?:V/v|Vlv|V\s*l\s*v|Về\s+việc|Ve\s+viec)\s+(.*?)(?:\n|$)'
+    ]
+    for pattern in vv_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            # Lấy vị trí của pattern trong text
+            pos = text.lower().find(match.group(0).lower()[:10])
+            if pos != -1:
+                sub_text = text[pos:]
+                # Tìm tất cả các dòng tiếp theo
+                sub_lines = [l.strip() for l in sub_text.split('\n') if l.strip()]
+                vv_accumulated = []
+                for sl in sub_lines:
+                    sl_upper = sl.upper()
+                    # Bỏ qua dòng chứa ngày tháng hoặc địa danh hoặc thông tin ký
+                    if "NGƯỜI KÝ" in sl_upper or "KÝ BỞI" in sl_upper or "CỘNG HÒA" in sl_upper or "ĐỘC LẬP" in sl_upper or "KÍNH GỬI" in sl_upper:
+                        continue
+                    # Nếu dòng bắt đầu bằng địa danh ngày tháng, ví dụ "Hà Nội, ngày..."
+                    if re.match(r'^[a-zA-ZĂâđêôư\s]+,\s*ngày\s+\d+', sl, re.I):
+                        continue
+                    # Nếu dòng có chữ V/v thì lấy phần sau chữ V/v
+                    if re.match(r'^(?:V/v|Vlv|Về việc)[:\-\s]*', sl, re.I):
+                        sl = re.sub(r'^(?:V/v|Vlv|Về việc)[:\-\s]*', '', sl, flags=re.I).strip()
+                    # Dừng nếu gặp "Kính gửi" ở dòng độc lập
+                    if sl_upper.startswith("KÍNH GỬI") or sl_upper.startswith("KINH GUI"):
+                        break
+                    if len(sl) > 2:
+                        vv_accumulated.append(sl)
+                    if len(vv_accumulated) >= 3: # Ghép tối đa 3 dòng liên quan
+                        break
+                if vv_accumulated:
+                    full_vv = " ".join(vv_accumulated).strip()
+                    full_vv = re.sub(r'\s+', ' ', full_vv)
+                    # Lọc bỏ phần đuôi nếu có ngày tháng bị thừa
+                    date_match = re.search(r'(?:Hà Nội|ngày\s+\d+|tháng\s+\d+)', full_vv, re.IGNORECASE)
+                    if date_match and date_match.start() > 10:
+                        full_vv = full_vv[:date_match.start()].strip()
+                    full_vv = re.sub(r'[:\-\s,\.]+$', '', full_vv).strip()
+                    if len(full_vv) > 10:
+                        if not full_vv.lower().startswith("về việc"):
+                            full_vv = "Về việc " + full_vv
+                        return full_vv
+
+    # 4. Fallback: tìm dòng phù hợp trong 12 dòng đầu
+    valid_lines = []
+    for line in lines[:12]:
+        line_upper = line.upper()
+        if any(w in line_upper for w in ["NGƯỜI KÝ", "KÝ BỞI", "CỘNG HÒA", "ĐỘC LẬP", "VĂN PHÒNG", "SỐ:", "HÀ NỘI,", "NGÀY THÁNG", "KÍNH GỬI"]):
+            continue
+        if len(line) >= 15 and len(line) <= 200:
+            valid_lines.append(line)
+            
+    if valid_lines:
+        return valid_lines[0]
+        
+    return ""
+
 def build_title(doc_number: str, issuing_authority: str, chunks: list) -> str:
     doc_type = parse_doc_type(doc_number)
     type_map = {
-        "quyet_dinh": "Quyet dinh", "nghi_dinh": "Nghi dinh",
-        "thong_tu": "Thong tu", "luat": "Luat",
-        "nghi_quyet": "Nghi quyet", "chi_thi": "Chi thi", "cong_van": "Cong van",
+        "quyet_dinh": "Quyết định", "nghi_dinh": "Nghị định",
+        "thong_tu": "Thông tư", "luat": "Luật",
+        "nghi_quyet": "Nghị quyết", "chi_thi": "Chỉ thị", "cong_van": "Công văn",
     }
-    type_label = type_map.get(doc_type, "Van ban")
+    type_label = type_map.get(doc_type, "Văn bản")
     header = chunks[0] if chunks else {}
     text = clean_text(header.get("text", ""))
-    match = re.search(r'(QUY\xc9T\s+\x10\xcfNH|NGH\xcc\s+\x10\xccNH|TH\xd4NG\s+T\u01af|LU\xcaT)\s*\n(.*?)\n', text, re.IGNORECASE | re.DOTALL)
-    if match:
-        snippet = match.group(2).strip().replace("\n", " ")
-        if len(snippet) > 10: return f"{type_label} {doc_number}: {snippet}"
-    snippet = text[:150].replace("\n", " ")
-    if snippet: return f"{type_label} {doc_number}: {snippet}..."
-    return f"{type_label} so {doc_number}"
+    
+    clean_t = parse_clean_title(text, doc_type, doc_number)
+    if clean_t:
+        return f"{type_label} số {doc_number}: {clean_t}"
+    
+    return f"{type_label} số {doc_number}"
 
 def build_content_markdown(chunks: list, doc_number: str) -> str:
     lines = [f"# Van ban so {doc_number}\n"]

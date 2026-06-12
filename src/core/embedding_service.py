@@ -238,8 +238,48 @@ def reindex_all_chunks():
 
     chunks = [dict(row) for row in rows]
     doc_ids = list(set(c["document_id"] for c in chunks))
-    
+
     logger.info(f"[Reindex] Found {len(chunks)} chunks from {len(doc_ids)} new documents. Indexing...")
     count = index_chunks(chunks, doc_ids_to_mark=doc_ids)
     logger.info(f"[Reindex] Done. Indexed {count} chunks.")
     return count
+
+
+_lc_vectorstore = None
+
+
+def get_langchain_vectorstore():
+    """
+    Trả về langchain_qdrant.QdrantVectorStore để dùng với LangChain retrievers.
+    Lazy-load, dùng cùng collection và config với _get_qdrant().
+    """
+    global _lc_vectorstore
+    if _lc_vectorstore is not None:
+        return _lc_vectorstore
+
+    try:
+        from langchain_qdrant import QdrantVectorStore
+        from langchain_community.embeddings import HuggingFaceEmbeddings
+        from src.config import (
+            EMBEDDING_MODEL, EMBEDDING_DEVICE,
+            QDRANT_MODE, QDRANT_URL, QDRANT_PATH, QDRANT_COLLECTION,
+        )
+
+        lc_embeddings = HuggingFaceEmbeddings(
+            model_name=EMBEDDING_MODEL,
+            model_kwargs={"device": EMBEDDING_DEVICE},
+            encode_kwargs={"normalize_embeddings": True},
+        )
+
+        client = _get_qdrant()  # dùng lại client đã khởi tạo
+
+        _lc_vectorstore = QdrantVectorStore(
+            client=client,
+            collection_name=QDRANT_COLLECTION,
+            embedding=lc_embeddings,
+        )
+        logger.info("[Embedding] LangChain QdrantVectorStore initialized")
+        return _lc_vectorstore
+    except Exception as e:
+        logger.warning(f"[Embedding] Failed to init LangChain vectorstore: {e}")
+        return None

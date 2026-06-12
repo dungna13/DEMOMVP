@@ -6,8 +6,10 @@ Hệ thống Tìm kiếm Văn bản Hành chính Quốc gia
 import os
 from dotenv import load_dotenv
 
-# Load biến môi trường từ file .env nếu có
-load_dotenv()
+# Load biến môi trường từ file .env nếu có bằng đường dẫn tuyệt đối
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+env_path = os.path.join(base_dir, ".env")
+load_dotenv(dotenv_path=env_path)
 
 # ─── LLM Configuration ────────────────────────────────────────────────────
 # Lấy API keys từ môi trường

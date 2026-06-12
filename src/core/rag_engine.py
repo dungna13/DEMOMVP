@@ -1,31 +1,48 @@
 """
 rag_engine.py — Phase 2: RAG Pipeline cho Q&A Pháp luật
-Retrieve → Re-rank → Generate Answer with Citations
+LangGraph StateGraph: Retrieve → Re-rank → Generate Answer with Citations
 """
 
 import logging
-from typing import List, Dict, Optional, Any
+import json
+from typing import List, Dict, Optional, Any, TypedDict, AsyncGenerator
+
+from langgraph.graph import StateGraph, END
+
 from src.database.database import get_db
 from src.config import RAG_TOP_K_RETRIEVE, RAG_TOP_K_CONTEXT
 
 logger = logging.getLogger(__name__)
 
 
-def retrieve_context(
-    question: str,
-    top_k: int = RAG_TOP_K_RETRIEVE,
-) -> List[Dict]:
-    """
-    Retrieve relevant chunks cho câu hỏi.
-    Kết hợp: Hybrid search (BM25 + Vector) + Wiki search
-    """
+# ── State Definition ──────────────────────────────────────────────────────────
+
+class RAGState(TypedDict, total=False):
+    question: str
+    session_id: Optional[str]
+    chat_history: List[Dict]
+    session_summary: Optional[str]
+    raw_chunks: List[Dict]
+    enriched_chunks: List[Dict]
+    reranked_chunks: List[Dict]
+    expanded_chunks: List[Dict]
+    answer: str
+    citations: List[Dict]
+    model: str
+    chunks_used: int
+    ai_available: bool
+    error: Optional[str]
+
+
+# ── Helper Functions (giữ nguyên logic cũ) ───────────────────────────────────
+
+def retrieve_context(question: str, top_k: int = RAG_TOP_K_RETRIEVE) -> List[Dict]:
+    """Hybrid search: Vector (Qdrant) + BM25 (FTS5) + dedup + sort."""
     chunks = []
 
-    # ── 1. Vector Search (nếu có) ──
     try:
         from src.core.embedding_service import vector_search as qdrant_search
-        vector_results = qdrant_search(query=question, top_k=top_k)
-        for result in vector_results:
+        for result in qdrant_search(query=question, top_k=top_k):
             payload = result["payload"]
             chunks.append({
                 "chunk_id": result["id"],
@@ -40,7 +57,6 @@ def retrieve_context(
     except Exception as e:
         logger.warning(f"[RAG] Vector search failed: {e}")
 
-    # ── 2. FTS5 Chunk Search ──
     try:
         from src.services.search import _build_fts_query
         fts_q = _build_fts_query(question)
@@ -54,7 +70,6 @@ def retrieve_context(
                 ORDER BY score
                 LIMIT ?
             """, (fts_q, top_k)).fetchall()
-
             for row in rows:
                 r = dict(row)
                 chunks.append({
@@ -70,153 +85,260 @@ def retrieve_context(
     except Exception as e:
         logger.warning(f"[RAG] FTS5 search failed: {e}")
 
-    # ── 3. Deduplicate & Merge ──
-    seen_chunks = set()
-    unique_chunks = []
-    for chunk in chunks:
-        key = (chunk["document_id"], chunk.get("dieu"), chunk.get("khoan"))
-        if key not in seen_chunks:
-            seen_chunks.add(key)
-            unique_chunks.append(chunk)
-
-    # ── 4. Sort by score (higher = better) ──
-    unique_chunks.sort(key=lambda x: x.get("score", 0), reverse=True)
-
-    return unique_chunks[:top_k]
+    seen = set()
+    unique = []
+    for c in chunks:
+        key = (c["document_id"], c.get("dieu"), c.get("khoan"))
+        if key not in seen:
+            seen.add(key)
+            unique.append(c)
+    unique.sort(key=lambda x: x.get("score", 0), reverse=True)
+    return unique[:top_k]
 
 
 def enrich_chunks_with_metadata(chunks: List[Dict]) -> List[Dict]:
-    """Bổ sung metadata từ documents vào chunks."""
+    """Bổ sung metadata từ bảng documents vào chunks."""
     if not chunks:
         return chunks
-
     doc_ids = list(set(c["document_id"] for c in chunks if c.get("document_id")))
     if not doc_ids:
         return chunks
-
     with get_db() as conn:
         placeholders = ",".join("?" * len(doc_ids))
         docs = conn.execute(
             f"SELECT id, doc_number, title, doc_type, effectiveness_status, issuing_date, issuing_authority FROM documents WHERE id IN ({placeholders})",
-            doc_ids
+            doc_ids,
         ).fetchall()
         doc_map = {d["id"]: dict(d) for d in docs}
-
     for chunk in chunks:
-        doc_id = chunk.get("document_id")
-        if doc_id and doc_id in doc_map:
-            doc = doc_map[doc_id]
-            chunk["doc_number"] = doc.get("doc_number", "")
-            chunk["doc_title"] = doc.get("title", "")
-            chunk["doc_type"] = doc.get("doc_type", "")
-            chunk["effectiveness_status"] = doc.get("effectiveness_status", "")
-            chunk["issuing_date"] = doc.get("issuing_date", "")
-            chunk["issuing_authority"] = doc.get("issuing_authority", "")
-
+        doc = doc_map.get(chunk.get("document_id"), {})
+        chunk.update({
+            "doc_number": doc.get("doc_number", ""),
+            "doc_title": doc.get("title", ""),
+            "doc_type": doc.get("doc_type", ""),
+            "effectiveness_status": doc.get("effectiveness_status", ""),
+            "issuing_date": doc.get("issuing_date", ""),
+            "issuing_authority": doc.get("issuing_authority", ""),
+        })
     return chunks
 
 
 def rerank_chunks(question: str, chunks: List[Dict], top_k: int = RAG_TOP_K_CONTEXT) -> List[Dict]:
-    """
-    Re-rank chunks sử dụng cross-encoder (tùy chọn).
-    Nếu cross-encoder không khả dụng, dùng simple scoring.
-    """
+    """Re-rank theo effectiveness, doc_type hierarchy, và specificity."""
     if not chunks:
         return []
-
-    # Simple re-ranking: ưu tiên văn bản còn hiệu lực
     from src.config import EFFECTIVENESS_BOOST
-
     for chunk in chunks:
-        base_score = chunk.get("score", 0)
-        eff_status = chunk.get("effectiveness_status", "con_hieu_luc")
-        boost = EFFECTIVENESS_BOOST.get(eff_status, 1.0)
-
-        # Boost theo loại văn bản (Ưu tiên Luật/Bộ luật hơn là Thông tư/Nghị định)
-        type_boost = 1.0
-        doc_type = chunk.get("doc_type", "")
-        if doc_type in ["luat", "bo_luat"]:
-            type_boost = 1.5
-        elif doc_type == "nghi_dinh":
-            type_boost = 1.2
-
-        # Boost cho chunks có Điều/Khoản cụ thể
-        specificity_boost = 1.0
-        if chunk.get("dieu"):
-            specificity_boost += 0.2
-        if chunk.get("khoan"):
-            specificity_boost += 0.1
-
-        chunk["rerank_score"] = base_score * boost * type_boost * specificity_boost
-
-    # Sort
+        base = chunk.get("score", 0)
+        eff_boost = EFFECTIVENESS_BOOST.get(chunk.get("effectiveness_status", "con_hieu_luc"), 1.0)
+        type_boost = {"luat": 1.5, "bo_luat": 1.5, "nghi_dinh": 1.2}.get(chunk.get("doc_type", ""), 1.0)
+        spec_boost = 1.0 + (0.2 if chunk.get("dieu") else 0) + (0.1 if chunk.get("khoan") else 0)
+        chunk["rerank_score"] = base * eff_boost * type_boost * spec_boost
     chunks.sort(key=lambda x: x.get("rerank_score", 0), reverse=True)
     return chunks[:top_k]
 
 
 def expand_context_with_guidance(chunks: List[Dict]) -> List[Dict]:
-    """Tìm thêm các điều/khoản hướng dẫn thi hành (relation_type = 'huong_dan') và chèn vào context."""
+    """Tìm thêm các văn bản hướng dẫn thi hành (relation_type = 'huong_dan')."""
     if not chunks:
         return chunks
-    
-    expanded = list(chunks)
     doc_ids = list(set(c["document_id"] for c in chunks if c.get("document_id")))
-    
     if not doc_ids:
         return chunks
-        
     guiding_docs = []
     try:
         with get_db() as conn:
             placeholders = ",".join("?" * len(doc_ids))
             rows = conn.execute(
-                f"""SELECT target_doc_id, target_doc_number, source_section, target_section
-                   FROM doc_relations
-                   WHERE source_doc_id IN ({placeholders}) AND relation_type = 'huong_dan' AND target_doc_id IS NOT NULL""",
-                doc_ids
+                f"SELECT target_doc_id FROM doc_relations WHERE source_doc_id IN ({placeholders}) AND relation_type = 'huong_dan' AND target_doc_id IS NOT NULL",
+                doc_ids,
             ).fetchall()
-            for r in rows:
-                guiding_docs.append(dict(r))
+            guiding_docs = [r["target_doc_id"] for r in rows]
     except Exception as e:
-        logger.warning(f"[RAG] Context expansion lookup failed: {e}")
-        
+        logger.warning(f"[RAG] Context expansion failed: {e}")
+        return chunks
+
     if not guiding_docs:
         return chunks
 
-    target_doc_ids = list(set(g["target_doc_id"] for g in guiding_docs))
-    guiding_chunks = []
+    expanded = list(chunks)
+    added = 0
     try:
         with get_db() as conn:
-            placeholders = ",".join("?" * len(target_doc_ids))
+            placeholders = ",".join("?" * len(guiding_docs))
             rows = conn.execute(
-                f"""SELECT c.*, d.doc_number, d.title as doc_title, d.doc_type, d.effectiveness_status
-                   FROM chunks c
-                   JOIN documents d ON c.document_id = d.id
-                   WHERE c.document_id IN ({placeholders})""",
-                target_doc_ids
+                f"SELECT c.*, d.doc_number, d.title as doc_title, d.doc_type, d.effectiveness_status FROM chunks c JOIN documents d ON c.document_id = d.id WHERE c.document_id IN ({placeholders})",
+                guiding_docs,
             ).fetchall()
             for r in rows:
                 c = dict(r)
                 c["source"] = "context_expansion"
-                guiding_chunks.append(c)
+                if not any(x["document_id"] == c["document_id"] and x.get("dieu") == c.get("dieu") for x in expanded):
+                    expanded.append(c)
+                    added += 1
+                    if added >= 4:
+                        break
     except Exception as e:
         logger.warning(f"[RAG] Failed to load guiding chunks: {e}")
 
-    if not guiding_chunks:
-        return chunks
-
-    added_count = 0
-    for g in guiding_docs:
-        matched = [c for c in guiding_chunks if c["document_id"] == g["target_doc_id"]]
-        if matched:
-            for c in matched[:2]:
-                if not any(x["document_id"] == c["document_id"] and x.get("dieu") == c.get("dieu") and x.get("khoan") == c.get("khoan") for x in expanded):
-                    expanded.append(c)
-                    added_count += 1
-                    
-    logger.info(f"[RAG] Context expansion added {added_count} guiding chunks")
+    logger.info(f"[RAG] Context expansion added {added} guiding chunks")
     return expanded
 
+
+# ── LangGraph Nodes ───────────────────────────────────────────────────────────
+
+def load_session_node(state: RAGState) -> RAGState:
+    """Load lịch sử chat và session summary từ database."""
+    session_id = state.get("session_id")
+    if not session_id:
+        return state
+    try:
+        from src.services.chat_service import get_session_detail, get_chat_messages
+        session_detail = get_session_detail(session_id)
+        if session_detail:
+            state["session_summary"] = session_detail.get("summary")
+        db_messages = get_chat_messages(session_id)
+        state["chat_history"] = [
+            {"role": m["role"], "content": m["content"]}
+            for m in db_messages
+            if m["role"] in ("user", "assistant")
+        ][-10:]
+    except Exception as e:
+        logger.warning(f"[RAG] Failed to load session context: {e}")
+    return state
+
+
+def retrieve_node(state: RAGState) -> RAGState:
+    """Node: Hybrid search để lấy raw chunks."""
+    state["raw_chunks"] = retrieve_context(state["question"], top_k=RAG_TOP_K_RETRIEVE)
+    return state
+
+
+def _should_generate(state: RAGState) -> str:
+    """Conditional edge: có chunks hay không."""
+    return "enrich" if state.get("raw_chunks") else "fallback"
+
+
+def enrich_node(state: RAGState) -> RAGState:
+    """Node: Thêm metadata document vào chunks."""
+    state["enriched_chunks"] = enrich_chunks_with_metadata(state.get("raw_chunks", []))
+    return state
+
+
+def rerank_node(state: RAGState) -> RAGState:
+    """Node: Re-rank và lọc chunks."""
+    state["reranked_chunks"] = rerank_chunks(
+        state["question"],
+        state.get("enriched_chunks", []),
+        top_k=RAG_TOP_K_CONTEXT,
+    )
+    return state
+
+
+def expand_node(state: RAGState) -> RAGState:
+    """Node: Mở rộng context với văn bản hướng dẫn thi hành."""
+    try:
+        state["expanded_chunks"] = expand_context_with_guidance(state.get("reranked_chunks", []))
+    except Exception as e:
+        logger.warning(f"[RAG] expand_node error: {e}")
+        state["expanded_chunks"] = state.get("reranked_chunks", [])
+    return state
+
+
+def generate_node(state: RAGState) -> RAGState:
+    """Node: Gọi LLM sinh câu trả lời từ context."""
+    from src.core.ai_service import generate_qa_answer, is_ai_available
+    context_chunks = state.get("expanded_chunks", [])
+    if is_ai_available():
+        result = generate_qa_answer(
+            question=state["question"],
+            context_chunks=context_chunks,
+            chat_history=state.get("chat_history"),
+            summary=state.get("session_summary"),
+        )
+    else:
+        parts = ["**Các quy định liên quan tìm được:**\n"]
+        for i, chunk in enumerate(context_chunks, 1):
+            header = f"**[{i}]** {chunk.get('doc_number', '')}"
+            if chunk.get("dieu"):
+                header += f" — Điều {chunk['dieu']}"
+            parts.append(f"{header}\n{chunk['content'][:500]}\n")
+        parts.append("\n*⚠️ AI không khả dụng. Vui lòng cấu hình API key.*")
+        result = {"answer": "\n".join(parts), "citations": [], "model": "none (fallback)", "chunks_used": len(context_chunks)}
+
+    state.update({
+        "answer": result["answer"],
+        "citations": result.get("citations", []),
+        "model": result.get("model", ""),
+        "chunks_used": result.get("chunks_used", len(context_chunks)),
+        "ai_available": is_ai_available(),
+    })
+    return state
+
+
+def fallback_node(state: RAGState) -> RAGState:
+    """Node: Trả về khi không tìm thấy context nào."""
+    from src.core.ai_service import is_ai_available
+    state.update({
+        "answer": "Không tìm thấy quy định pháp luật liên quan trong cơ sở dữ liệu. Vui lòng thử diễn đạt lại câu hỏi hoặc sử dụng từ khóa cụ thể hơn.",
+        "citations": [],
+        "model": "",
+        "chunks_used": 0,
+        "ai_available": is_ai_available(),
+    })
+    return state
+
+
+def save_session_node(state: RAGState) -> RAGState:
+    """Node: Lưu messages vào database."""
+    session_id = state.get("session_id")
+    if not session_id:
+        return state
+    try:
+        from src.services.chat_service import save_chat_message
+        save_chat_message(session_id, "user", state["question"])
+        save_chat_message(session_id, "assistant", state.get("answer", ""))
+    except Exception as e:
+        logger.warning(f"[RAG] Failed to save conversation: {e}")
+    return state
+
+
+# ── Build LangGraph App ───────────────────────────────────────────────────────
+
+def _build_rag_graph() -> StateGraph:
+    graph = StateGraph(RAGState)
+    graph.add_node("load_session", load_session_node)
+    graph.add_node("retrieve", retrieve_node)
+    graph.add_node("enrich", enrich_node)
+    graph.add_node("rerank", rerank_node)
+    graph.add_node("expand", expand_node)
+    graph.add_node("generate", generate_node)
+    graph.add_node("fallback", fallback_node)
+    graph.add_node("save_session", save_session_node)
+
+    graph.set_entry_point("load_session")
+    graph.add_edge("load_session", "retrieve")
+    graph.add_conditional_edges("retrieve", _should_generate, {"enrich": "enrich", "fallback": "fallback"})
+    graph.add_edge("enrich", "rerank")
+    graph.add_edge("rerank", "expand")
+    graph.add_edge("expand", "generate")
+    graph.add_edge("generate", "save_session")
+    graph.add_edge("fallback", "save_session")
+    graph.add_edge("save_session", END)
+    return graph.compile()
+
+
+_rag_app = None
+
+
+def _get_rag_app():
+    global _rag_app
+    if _rag_app is None:
+        _rag_app = _build_rag_graph()
+    return _rag_app
+
+
+# ── Public API (giữ nguyên signature) ────────────────────────────────────────
 
 def ask_question(
     question: str,
@@ -226,116 +348,55 @@ def ask_question(
     top_k_context: int = RAG_TOP_K_CONTEXT,
 ) -> Dict:
     """
-    Pipeline RAG hoàn chỉnh:
-    1. Retrieve relevant chunks
-    2. Enrich with metadata
-    3. Re-rank
-    4. Expand Context (Tìm văn bản hướng dẫn)
-    5. Generate answer with citations
+    Pipeline RAG hoàn chỉnh qua LangGraph StateGraph.
+    Signature giữ nguyên để không break main.py.
     """
-    from src.core.ai_service import generate_qa_answer, is_ai_available
+    app = _get_rag_app()
+    initial_state: RAGState = {
+        "question": question,
+        "session_id": session_id,
+        "chat_history": chat_history or [],
+        "session_summary": None,
+    }
+    final_state = app.invoke(initial_state)
+    return {
+        "question": question,
+        "answer": final_state.get("answer", ""),
+        "citations": final_state.get("citations", []),
+        "model": final_state.get("model", ""),
+        "chunks_used": final_state.get("chunks_used", 0),
+        "ai_available": final_state.get("ai_available", False),
+        "session_id": session_id,
+    }
 
-    # Tải lịch sử và bối cảnh tóm tắt từ DB nếu có session_id
-    summary = None
-    if session_id:
-        try:
-            from src.services.chat_service import get_session_detail, get_chat_messages, save_chat_message
-            session_detail = get_session_detail(session_id)
-            if session_detail:
-                summary = session_detail.get("summary")
 
-            db_messages = get_chat_messages(session_id)
-            formatted_history = []
-            for msg in db_messages:
-                if msg["role"] in ("user", "assistant"):
-                    formatted_history.append({"role": msg["role"], "content": msg["content"]})
-            # Lấy tối đa 10 tin nhắn gần nhất (5 cặp QA) làm ngữ cảnh ngắn hạn cho RAG
-            chat_history = formatted_history[-10:]
-        except Exception as e:
-            logger.warning(f"[RAG] Failed to load session context: {e}")
-
-    # Step 1: Retrieve
-    raw_chunks = retrieve_context(question, top_k=top_k_retrieve)
-
-    # Step 2: Enrich
-    enriched_chunks = enrich_chunks_with_metadata(raw_chunks)
-
-    # Step 3: Re-rank
-    context_chunks = rerank_chunks(question, enriched_chunks, top_k=top_k_context)
-
-    # Step 4: Context Expansion (Tự động mở rộng thêm văn bản hướng dẫn thi hành)
-    try:
-        context_chunks = expand_context_with_guidance(context_chunks)
-    except Exception as e:
-        logger.warning(f"[RAG] Context expansion error: {e}")
-
-    # Nếu không tìm được context nào
-    if not context_chunks:
-        answer = "Không tìm thấy quy định pháp luật liên quan trong cơ sở dữ liệu. Vui lòng thử diễn đạt lại câu hỏi hoặc sử dụng từ khóa cụ thể hơn."
-        if session_id:
-            try:
-                from src.services.chat_service import save_chat_message
-                save_chat_message(session_id, "user", question)
-                save_chat_message(session_id, "assistant", answer)
-            except Exception as e:
-                logger.warning(f"[RAG] Failed to save fallback messages to DB: {e}")
-        return {
-            "question": question,
-            "answer": answer,
-            "citations": [],
-            "model": "",
-            "chunks_used": 0,
-            "ai_available": is_ai_available(),
-            "session_id": session_id,
-        }
-
-    # Step 5: Generate answer
-    if is_ai_available():
-        result = generate_qa_answer(
-            question=question,
-            context_chunks=context_chunks,
-            chat_history=chat_history,
-            summary=summary,
-        )
-    else:
-        # Fallback: Hiển thị context chunks trực tiếp
-        answer_parts = ["**Các quy định liên quan tìm được:**\n"]
-        for i, chunk in enumerate(context_chunks, 1):
-            header = f"**[{i}]**"
-            if chunk.get("doc_number"):
-                header += f" {chunk['doc_number']}"
-            if chunk.get("dieu"):
-                header += f" — Điều {chunk['dieu']}"
-            if chunk.get("khoan"):
-                header += f", Khoản {chunk['khoan']}"
-            answer_parts.append(f"{header}\n{chunk['content'][:500]}\n")
-
-        answer_parts.append("\n*⚠️ AI không khả dụng. Vui lòng cấu hình API key (OPENAI_API_KEY hoặc ANTHROPIC_API_KEY) để có câu trả lời tổng hợp.*")
-
-        result = {
-            "answer": "\n".join(answer_parts),
-            "citations": [],
-            "model": "none (fallback)",
-            "chunks_used": len(context_chunks),
-        }
-
-    # Lưu tin nhắn hội thoại vào DB
-    if session_id:
-        try:
-            from src.services.chat_service import save_chat_message
-            save_chat_message(session_id, "user", question)
-            save_chat_message(session_id, "assistant", result["answer"])
-        except Exception as e:
-            logger.warning(f"[RAG] Failed to save conversation to DB: {e}")
-
-    result["question"] = question
-    result["ai_available"] = is_ai_available()
-    result["session_id"] = session_id
-    return result
+async def ask_question_stream(
+    question: str,
+    session_id: Optional[str] = None,
+) -> AsyncGenerator[Dict, None]:
+    """
+    Streaming version: yield từng update của RAG graph dưới dạng SSE events.
+    Dùng cho endpoint GET /api/qa/stream.
+    """
+    app = _get_rag_app()
+    initial_state: RAGState = {
+        "question": question,
+        "session_id": session_id,
+        "chat_history": [],
+        "session_summary": None,
+    }
+    async for event in app.astream(initial_state):
+        node_name = list(event.keys())[0] if event else "unknown"
+        node_state = event.get(node_name, {})
+        if node_name == "generate" and "answer" in node_state:
+            yield {"type": "answer", "content": node_state["answer"], "citations": node_state.get("citations", [])}
+        elif node_name == "fallback" and "answer" in node_state:
+            yield {"type": "answer", "content": node_state["answer"], "citations": []}
+        else:
+            yield {"type": "progress", "node": node_name}
 
 
 def get_suggested_questions() -> List[str]:
-    """Gợi ý câu hỏi mẫu cho người dùng."""
     return [
         "Điều kiện chuyển nhượng quyền sử dụng đất?",
         "Thủ tục thành lập doanh nghiệp theo quy định mới nhất?",

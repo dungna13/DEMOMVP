@@ -1,18 +1,21 @@
 """
-ai_service.py — Phase 2: LLM Abstraction Layer
+ai_service.py — LangChain-based LLM Abstraction Layer
 Auto-summarization, auto-tagging, Q&A generation
-Sử dụng litellm để hỗ trợ nhiều LLM provider
+Sử dụng LangChain để hỗ trợ nhiều LLM provider với structured output.
 """
 
-import json
 import logging
 from typing import List, Dict, Optional, Any
 
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
+from langchain_core.language_models import BaseChatModel
+
 from src.config import (
     LLM_MODEL, LLM_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY,
-    LEGAL_FIELDS, AUTO_TAG_CONFIDENCE_THRESHOLD,
-    RAG_TEMPERATURE,
+    LEGAL_FIELDS, AUTO_TAG_CONFIDENCE_THRESHOLD, RAG_TEMPERATURE,
 )
+from src.core.output_schemas import QAResponse, AutoTagResult, CitationItem
 from prompts.system_prompt import (
     RAG_QA_PROMPT,
     SUMMARIZE_LVL1_PROMPT,
@@ -22,72 +25,116 @@ from prompts.system_prompt import (
 
 logger = logging.getLogger(__name__)
 
+_chat_model: Optional[BaseChatModel] = None
 
-def _call_llm(
-    messages: List[Dict[str, str]],
-    model: Optional[str] = None,
-    temperature: float = 0.1,
-    max_tokens: int = 2000,
-) -> str:
+
+def _get_chat_model(temperature: float = 0.1, max_tokens: int = 2000) -> Optional[BaseChatModel]:
     """
-    Gọi LLM qua litellm.
-    Fallback: nếu litellm không khả dụng, trả về empty string.
+    Factory: trả về LangChain ChatModel phù hợp dựa trên API key có sẵn.
+    Ưu tiên: Gemini → OpenAI → Anthropic → Ollama.
     """
     try:
-        import litellm
-        # Set API keys
-        if LLM_API_KEY:
-            import os
-            os.environ["OPENAI_API_KEY"] = LLM_API_KEY
-        if ANTHROPIC_API_KEY:
-            import os
-            os.environ["ANTHROPIC_API_KEY"] = ANTHROPIC_API_KEY
         if GEMINI_API_KEY:
-            import os
-            os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
-
-        response = litellm.completion(
-            model=model or LLM_MODEL,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
-        return response.choices[0].message.content.strip()
-    except ImportError:
-        logger.warning("[AI] litellm not installed. AI features disabled.")
-        return ""
+            from langchain_google_genai import ChatGoogleGenerativeAI
+            model_name = LLM_MODEL.replace("gemini/", "") if "gemini/" in LLM_MODEL else "gemini-1.5-flash"
+            return ChatGoogleGenerativeAI(
+                model=model_name,
+                google_api_key=GEMINI_API_KEY,
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+            )
+        if LLM_API_KEY:
+            from langchain_openai import ChatOpenAI
+            model_name = LLM_MODEL if not LLM_MODEL.startswith("gpt") else LLM_MODEL
+            return ChatOpenAI(
+                model=model_name,
+                api_key=LLM_API_KEY,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+        if ANTHROPIC_API_KEY:
+            from langchain_anthropic import ChatAnthropic
+            model_name = LLM_MODEL if "claude" in LLM_MODEL else "claude-3-haiku-20240307"
+            return ChatAnthropic(
+                model=model_name,
+                api_key=ANTHROPIC_API_KEY,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+        # Fallback: Ollama local
+        from langchain_ollama import ChatOllama
+        ollama_model = LLM_MODEL.replace("ollama/", "") if "ollama/" in LLM_MODEL else "vistral"
+        return ChatOllama(model=ollama_model, temperature=temperature)
+    except ImportError as e:
+        logger.warning(f"[AI] LangChain provider import failed: {e}")
+        return None
     except Exception as e:
-        logger.error(f"[AI] LLM call failed: {e}")
+        logger.error(f"[AI] Failed to initialize chat model: {e}")
+        return None
+
+
+def _call_llm(messages: List[Dict[str, str]], temperature: float = 0.1, max_tokens: int = 1000) -> str:
+    """Gọi LLM với danh sách messages thô (role và content) dùng LangChain model."""
+    model = _get_chat_model(temperature=temperature, max_tokens=max_tokens)
+    if not model:
         return ""
+    
+    langchain_messages = []
+    for msg in messages:
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+        if role == "system":
+            langchain_messages.append(("system", content))
+        elif role == "assistant":
+            langchain_messages.append(("ai", content))
+        else:
+            langchain_messages.append(("human", content))
+            
+    try:
+        response = model.invoke(langchain_messages)
+        if hasattr(response, "content"):
+            return response.content
+        return str(response)
+    except Exception as e:
+        logger.error(f"[AI] _call_llm failed: {e}")
+        return ""
+
+
+def is_ai_available() -> bool:
+    """Kiểm tra xem AI service có khả dụng không."""
+    return bool(LLM_API_KEY or ANTHROPIC_API_KEY or GEMINI_API_KEY)
 
 
 def auto_summarize(content: str, doc_number: str = "", level: int = 1) -> str:
     """
     Tóm tắt văn bản pháp luật.
-    Level 1: 2-3 câu tóm tắt nhanh (dùng 3000 tokens đầu)
-    Level 2: Tóm tắt theo cấu trúc Chương/Điều (toàn bộ)
+    Level 1: 2-3 câu tóm tắt nhanh
+    Level 2: Tóm tắt theo cấu trúc Chương/Điều
     """
     if not content or len(content.strip()) < 50:
         return ""
 
-    if level == 1:
-        # Level 1: Tóm tắt nhanh
-        truncated = content[:6000]  # ~3000 tokens
-        messages = [
-            {"role": "system", "content": SUMMARIZE_LVL1_PROMPT},
-            {"role": "user", "content": f"Văn bản {doc_number}:\n\n{truncated}"},
-        ]
-    else:
-        # Level 2: Tóm tắt chi tiết
-        messages = [
-            {"role": "system", "content": SUMMARIZE_LVL2_PROMPT},
-            {"role": "user", "content": f"Văn bản {doc_number}:\n\n{content[:12000]}"},
-        ]
+    model = _get_chat_model(temperature=0.1, max_tokens=1000 if level == 1 else 2000)
+    if not model:
+        return ""
 
-    result = _call_llm(messages, temperature=0.1, max_tokens=1000 if level == 1 else 2000)
-    if result:
-        logger.info(f"[AI] Summarized {doc_number} (level {level})")
-    return result
+    system_prompt = SUMMARIZE_LVL1_PROMPT if level == 1 else SUMMARIZE_LVL2_PROMPT
+    truncated = content[:6000] if level == 1 else content[:12000]
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("human", "Văn bản {doc_number}:\n\n{content}"),
+    ])
+    chain = prompt | model | StrOutputParser()
+
+    try:
+        result = chain.invoke({"doc_number": doc_number, "content": truncated})
+        if result:
+            logger.info(f"[AI] Summarized {doc_number} (level {level})")
+        return result
+    except Exception as e:
+        logger.error(f"[AI] auto_summarize failed: {e}")
+        return ""
 
 
 def auto_tag(content: str, existing_fields: Optional[List[str]] = None) -> Dict:
@@ -98,38 +145,32 @@ def auto_tag(content: str, existing_fields: Optional[List[str]] = None) -> Dict:
     if not content or len(content.strip()) < 50:
         return {"fields": [], "confidence": 0.0, "auto_applied": False}
 
-    fields_list = existing_fields or LEGAL_FIELDS
-    fields_str = ", ".join(fields_list)
-
-    messages = [
-        {"role": "system", "content": AUTO_TAG_PROMPT.format(fields_str=fields_str)},
-        {"role": "user", "content": content[:3000]},
-    ]
-
-    result = _call_llm(messages, temperature=0.0, max_tokens=200)
-    if not result:
+    model = _get_chat_model(temperature=0.0, max_tokens=200)
+    if not model:
         return {"fields": [], "confidence": 0.0, "auto_applied": False}
 
-    try:
-        # Parse JSON từ LLM response
-        # Xử lý trường hợp LLM trả về text + JSON
-        json_start = result.find("{")
-        json_end = result.rfind("}") + 1
-        if json_start >= 0 and json_end > json_start:
-            parsed = json.loads(result[json_start:json_end])
-            fields = parsed.get("fields", [])
-            confidence = float(parsed.get("confidence", 0.0))
-            auto_applied = confidence >= AUTO_TAG_CONFIDENCE_THRESHOLD
-            return {
-                "fields": fields,
-                "confidence": confidence,
-                "auto_applied": auto_applied,
-                "model": LLM_MODEL,
-            }
-    except (json.JSONDecodeError, ValueError) as e:
-        logger.warning(f"[AI] Failed to parse auto-tag response: {e}")
+    fields_str = ", ".join(existing_fields or LEGAL_FIELDS)
+    parser = PydanticOutputParser(pydantic_object=AutoTagResult)
 
-    return {"fields": [], "confidence": 0.0, "auto_applied": False}
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", AUTO_TAG_PROMPT.format(fields_str=fields_str) + "\n\n{format_instructions}"),
+        ("human", "{content}"),
+    ]).partial(format_instructions=parser.get_format_instructions())
+
+    chain = prompt | model | parser
+
+    try:
+        result: AutoTagResult = chain.invoke({"content": content[:3000]})
+        auto_applied = result.confidence >= AUTO_TAG_CONFIDENCE_THRESHOLD
+        return {
+            "fields": result.fields,
+            "confidence": result.confidence,
+            "auto_applied": auto_applied,
+            "model": LLM_MODEL,
+        }
+    except Exception as e:
+        logger.warning(f"[AI] auto_tag failed: {e}")
+        return {"fields": [], "confidence": 0.0, "auto_applied": False}
 
 
 def generate_qa_answer(
@@ -139,14 +180,25 @@ def generate_qa_answer(
     summary: Optional[str] = None,
 ) -> Dict:
     """
-    RAG Q&A: Sinh câu trả lời pháp luật dựa trên context chunks (Strict RAG với JSON Mode).
-    Returns: {answer: str, citations: [...], model: str}
+    RAG Q&A: Sinh câu trả lời pháp luật dựa trên context chunks.
+    Dùng PydanticOutputParser thay cho manual JSON parsing.
+    Returns: {answer: str, citations: [...], model: str, chunks_used: int}
     """
     if not context_chunks:
         return {
             "answer": "Xin lỗi, tôi không tìm thấy quy định pháp luật liên quan đến câu hỏi của bạn trong cơ sở dữ liệu.",
             "citations": [],
             "model": LLM_MODEL,
+            "chunks_used": 0,
+        }
+
+    model = _get_chat_model(temperature=RAG_TEMPERATURE, max_tokens=2000)
+    if not model:
+        return {
+            "answer": "Xin lỗi, hệ thống AI tạm thời không khả dụng.",
+            "citations": [],
+            "model": "none",
+            "chunks_used": 0,
         }
 
     # Build context string
@@ -159,122 +211,101 @@ def generate_qa_answer(
             doc_info += f", Khoản {chunk['khoan']}"
         doc_info += ")"
         context_parts.append(f"{doc_info}:\n{chunk['content']}")
-
     context = "\n\n---\n\n".join(context_parts)
 
-    system_prompt = RAG_QA_PROMPT
-
+    # Thêm bối cảnh hội thoại vào system prompt nếu có
+    system_content = RAG_QA_PROMPT
     if summary:
-        system_prompt += f"\n\nBối cảnh hội thoại hiện tại (Ký ức dài hạn / Thông tin đã trao đổi trước đây): {summary}"
+        system_content += f"\n\nBối cảnh hội thoại (Ký ức dài hạn): {summary}"
 
-    messages = [{"role": "system", "content": system_prompt}]
+    parser = PydanticOutputParser(pydantic_object=QAResponse)
 
-    # Add chat history if available
+    # Build messages list: system + history + user
+    escaped_system = system_content.replace("{", "{{").replace("}", "}}")
+    messages = [("system", escaped_system + "\n\n{format_instructions}")]
     if chat_history:
         for msg in chat_history:
-            messages.append(msg)
+            role = "human" if msg["role"] == "user" else "ai"
+            messages.append((role, msg["content"]))
+    messages.append(("human", "Context:\n\n{context}\n\n---\n\nCâu hỏi: {question}"))
 
-    messages.append({
-        "role": "user",
-        "content": f"Context:\n\n{context}\n\n---\n\nCâu hỏi: {question}",
-    })
+    prompt = ChatPromptTemplate.from_messages(messages).partial(
+        format_instructions=parser.get_format_instructions()
+    )
+    from langchain_core.output_parsers import StrOutputParser
+    import re
+    import json
 
-    response_content = ""
+    chain = prompt | model | StrOutputParser()
+
     try:
-        import litellm
-        # Set API keys
-        if LLM_API_KEY:
-            import os
-            os.environ["OPENAI_API_KEY"] = LLM_API_KEY
-        if ANTHROPIC_API_KEY:
-            import os
-            os.environ["ANTHROPIC_API_KEY"] = ANTHROPIC_API_KEY
-        if GEMINI_API_KEY:
-            import os
-            os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
+        raw_response = chain.invoke({"context": context, "question": question})
+        
+        # Loại bỏ khối nháp <thought>...</thought>
+        cleaned = re.sub(r'<thought>.*?</thought>', '', raw_response, flags=re.DOTALL | re.IGNORECASE).strip()
+        
+        # Loại bỏ các ký tự code block markdown ```json ... ``` nếu có
+        cleaned = re.sub(r'^```json\s*', '', cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r'\s*```$', '', cleaned)
+        cleaned = cleaned.strip()
 
-        # Thử gọi JSON Mode nếu cấu hình phù hợp
-        response = litellm.completion(
-            model=LLM_MODEL,
-            messages=messages,
-            temperature=RAG_TEMPERATURE,
-            max_tokens=2000,
-            response_format={ "type": "json_object" } if ("gemini" in LLM_MODEL or "gpt" in LLM_MODEL) else None
-        )
-        response_content = response.choices[0].message.content.strip()
-    except Exception as e:
-        logger.error(f"[AI] RAG completion call failed: {e}")
-        # Fallback to general LLM call
-        response_content = _call_llm(messages, temperature=RAG_TEMPERATURE, max_tokens=2000)
-
-    # Parse JSON kết quả
-    answer = ""
-    citations = []
-    if response_content:
+        parsed_data = None
         try:
-            # Dọn sạch block markdown ```json nếu LLM tự chèn thêm
-            clean_content = response_content
-            if clean_content.startswith("```"):
-                if clean_content.startswith("```json"):
-                    clean_content = clean_content[7:]
-                else:
-                    clean_content = clean_content[3:]
-                if clean_content.endswith("```"):
-                    clean_content = clean_content[:-3]
-                clean_content = clean_content.strip()
+            parsed_data = json.loads(cleaned)
+        except Exception:
+            # Thử tìm cặp ngoặc nhọn đầu tiên và cuối cùng nếu bị dính text ngoài
+            match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+            if match:
+                try:
+                    parsed_data = json.loads(match.group(0))
+                except Exception:
+                    pass
 
-            parsed = json.loads(clean_content)
-            answer = parsed.get("answer", "")
-            citations = parsed.get("citations", [])
-            # Map index number to match frontend expectations
-            for idx, cit in enumerate(citations, 1):
-                cit["index"] = idx
-                # Map field names if they mismatch template requirements
-                if "doc_id" not in cit:
-                    cit["doc_id"] = None
-                if "doc_number" not in cit and "document_number" in cit:
-                    cit["doc_number"] = cit["document_number"]
-                if "doc_title" not in cit and "document_name" in cit:
-                    cit["doc_title"] = cit["document_name"]
-                if "dieu" not in cit and "article" in cit:
-                    # extract number from article text
-                    import re
-                    m = re.search(r'\d+', cit["article"])
-                    cit["dieu"] = int(m.group(0)) if m else None
-                if "khoan" not in cit and "clause" in cit:
-                    import re
-                    m = re.search(r'\d+', cit["clause"])
-                    cit["khoan"] = int(m.group(0)) if m else None
-        except Exception as e:
-            logger.warning(f"[AI] Failed to parse JSON response: {e}. Raw: {response_content}")
-            answer = response_content
-            # Fallback citations from context_chunks
-            for i, chunk in enumerate(context_chunks):
+        if parsed_data and isinstance(parsed_data, dict):
+            citations = []
+            raw_citations = parsed_data.get("citations", [])
+            for idx, cit in enumerate(raw_citations, 1):
                 citations.append({
-                    "index": i + 1,
-                    "doc_id": chunk.get("document_id"),
-                    "doc_number": chunk.get("doc_number", ""),
-                    "doc_title": chunk.get("doc_title", ""),
-                    "dieu": chunk.get("dieu"),
-                    "khoan": chunk.get("khoan"),
-                    "content_preview": chunk["content"][:200],
+                    "index": idx,
+                    "doc_id": None,
+                    "doc_number": cit.get("document_number") or cit.get("doc_number") or "N/A",
+                    "doc_title": cit.get("document_name") or cit.get("doc_title") or "N/A",
+                    "dieu": cit.get("article") or cit.get("dieu"),
+                    "khoan": cit.get("clause") or cit.get("khoan"),
+                    "content_preview": cit.get("extracted_text") or cit.get("content_preview") or "",
                 })
-
-    if not answer:
-        answer = "Xin lỗi, hệ thống AI tạm thời không khả dụng. Vui lòng thử lại sau hoặc cấu hình API key trong config.py."
-
-    return {
-        "answer": answer,
-        "citations": citations,
-        "model": LLM_MODEL,
-        "chunks_used": len(context_chunks),
-    }
-
-
-def is_ai_available() -> bool:
-    """Kiểm tra xem AI service có khả dụng không."""
-    try:
-        import litellm
-        return bool(LLM_API_KEY or ANTHROPIC_API_KEY or GEMINI_API_KEY)
-    except ImportError:
-        return False
+            
+            return {
+                "answer": parsed_data.get("answer", ""),
+                "citations": citations,
+                "model": LLM_MODEL,
+                "chunks_used": len(context_chunks),
+            }
+        else:
+            # Nếu không parse được JSON, trả về nội dung text thuần đã làm sạch thought
+            return {
+                "answer": cleaned,
+                "citations": [
+                    {
+                        "index": i + 1,
+                        "doc_id": c.get("document_id"),
+                        "doc_number": c.get("doc_number", ""),
+                        "doc_title": c.get("doc_title", ""),
+                        "dieu": c.get("dieu"),
+                        "khoan": c.get("khoan"),
+                        "content_preview": c["content"][:200],
+                    }
+                    for i, c in enumerate(context_chunks)
+                ],
+                "model": LLM_MODEL,
+                "chunks_used": len(context_chunks),
+            }
+            
+    except Exception as e:
+        logger.error(f"[AI] generate_qa_answer failed: {e}")
+        return {
+            "answer": "Xin lỗi, hệ thống AI tạm thời gặp lỗi khi xử lý câu trả lời.",
+            "citations": [],
+            "model": LLM_MODEL,
+            "chunks_used": 0,
+        }
