@@ -24,3 +24,12 @@ ngrok.exe
 # OS files
 .DS_Store
 Thumbs.db
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# User uploads
+chunks/uploads/*
+!chunks/uploads/.gitkeep

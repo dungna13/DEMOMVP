@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Văn bản — Hệ thống Tìm kiếm Văn bản Hành chính{% endblock %}
+
+{% block head %}
+<style>
+.upload-layout {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 2rem;
+}
+.upload-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+.upload-header-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.05));
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #a78bfa;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+}
+.upload-title {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 30%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+}
+.upload-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+/* Dropzone */
+.upload-dropzone {
+    border: 2px dashed rgba(139, 92, 246, 0.3);
+    border-radius: var(--radius-lg);
+    padding: 60px 40px;
+    text-align: center;
+    background: rgba(139, 92, 246, 0.03);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+.upload-dropzone:hover,
+.upload-dropzone.dragover {
+    border-color: rgba(139, 92, 246, 0.6);
+    background: rgba(139, 92, 246, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
+}
+.upload-dropzone-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.8;
+}
+.upload-dropzone-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+.upload-dropzone-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.upload-dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Progress */
+.upload-progress {
+    display: none;
+    margin-top: 32px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    backdrop-filter: blur(12px);
+}
+.upload-progress.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.upload-file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.upload-file-icon {
+    font-size: 28px;
+}
+.upload-file-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.upload-file-size {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Pipeline Steps */
+.pipeline-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.pipeline-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+.pipeline-step.active {
+    background: rgba(139, 92, 246, 0.08);
+    color: #a78bfa;
+    font-weight: 600;
+}
+.pipeline-step.done {
+    color: #34d399;
+}
+.pipeline-step.failed {
+    color: #f87171;
+}
+.pipeline-step-icon {
+    width: 24px;
+    text-align: center;
+    font-size: 14px;
+}
+.pipeline-step.active .pipeline-step-icon::after {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #a78bfa;
+    animation: pulse 1.2s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Result */
+.upload-result {
+    display: none;
+    margin-top: 24px;
+    padding: 20px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    line-height: 1.8;
+}
+.upload-result.success {
+    display: block;
+    background: rgba(52, 211, 153, 0.08);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    color: #6ee7b7;
+}
+.upload-result.error {
+    display: block;
+    background: rgba(248, 113, 113, 0.08);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    color: #fca5a5;
+}
+.upload-result.duplicate {
+    display: block;
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: #fcd34d;
+}
+.upload-result a {
+    color: var(--gold-400);
+    text-decoration: underline;
+}
+.upload-another-btn {
+    margin-top: 20px;
+    background: linear-gradient(135deg, var(--gold-500), var(--gold-400));
+    color: var(--navy-900);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 10px 24px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all var(--transition);
+}
+.upload-another-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--gold-glow);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-layout">
+
+  <div class="upload-header">
+    <div class="upload-header-badge">📤 Tải lên & Xử lý văn bản</div>
+    <h1 class="upload-title">Upload Văn bản Pháp luật</h1>
+    <p class="upload-subtitle">
+      Tải lên file PDF hoặc DOCX. Hệ thống sẽ tự động xử lý OCR, phân tách cấu trúc Điều/Khoản
+      và nạp vào cơ sở dữ liệu để phục vụ tìm kiếm và hỏi đáp AI.
+    </p>
+  </div>
+
+  <!-- DROPZONE -->
+  <div class="upload-dropzone" id="dropzone">
+    <div class="upload-dropzone-icon">📄</div>
+    <div class="upload-dropzone-text">Kéo thả file vào đây hoặc nhấn để chọn</div>
+    <div class="upload-dropzone-hint">Hỗ trợ: PDF, DOCX · File gốc không được lưu trữ</div>
+    <input type="file" id="file-input" accept=".pdf,.docx" />
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="upload-progress" id="upload-progress">
+    <div class="upload-file-info">
+      <span class="upload-file-icon" id="file-icon">📄</span>
+      <div>
+        <div class="upload-file-name" id="file-name-display">—</div>
+        <div class="upload-file-size" id="file-size-display">—</div>
+      </div>
+    </div>
+    <div class="pipeline-steps" id="pipeline-steps">
+      <div class="pipeline-step" data-node="validate_upload">
+        <span class="pipeline-step-icon">○</span>
+        <span>Kiểm tra file & phát hiện trùng lặp</span>
+      </div>
+      <div class="pipeline-step" data-node="trigger_ocr,extract_docx_text">
+        <span class="pipeline-step-icon">○</span>
+        <span>Trích xuất văn bản (OCR / DOCX)</span>
+      </div>
+      <div class="pipeline-step" data-node="parse_and_chunk">
+        <span class="pipeline-step-icon">○</span>
+        <span>Phân tách cấu trúc & chia chunks</span>
+      </div>
+      <div class="pipeline-step" data-node="db_ingest">
+        <span class="pipeline-step-icon">○</span>
+        <span>Lưu vào cơ sở dữ liệu SQLite</span>
+      </div>
+      <div class="pipeline-step" data-node="vector_index">
+        <span class="pipeline-step-icon">○</span>
+        <span>Đánh chỉ mục vector (Qdrant)</span>
+      </div>
+      <div class="pipeline-step" data-node="extract_relations">
+        <span class="pipeline-step-icon">○</span>
+        <span>Phát hiện quan hệ pháp lý</span>
+      </div>
+      <div class="pipeline-step" data-node="compile_wiki">
+        <span class="pipeline-step-icon">○</span>
+        <span>Biên soạn trang Wiki</span>
+      </div>
+    </div>
+
+    <div class="upload-result" id="upload-result"></div>
+  </div>
+
+</div>
+
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('file-input');
+const progressDiv = document.getElementById('upload-progress');
+const resultDiv = document.getElementById('upload-result');
+const steps = document.querySelectorAll('.pipeline-step');
+
+let currentTaskId = null;
+let pollTimer = null;
+
+// Drag & Drop events
+['dragenter', 'dragover'].forEach(evt => {
+  dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+});
+['dragleave', 'drop'].forEach(evt => {
+  dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('dragover'); });
+});
+dropzone.addEventListener('drop', e => {
+  const file = e.dataTransfer.files[0];
+  if (file) uploadFile(file);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) uploadFile(fileInput.files[0]);
+});
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+async function uploadFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['pdf', 'docx'].includes(ext)) {
+    showToast('Chỉ hỗ trợ file PDF và DOCX.', 'error');
+    return;
+  }
+
+  // Show progress
+  document.getElementById('file-name-display').textContent = file.name;
+  document.getElementById('file-size-display').textContent = formatSize(file.size);
+  document.getElementById('file-icon').textContent = ext === 'pdf' ? '📕' : '📘';
+  progressDiv.classList.add('active');
+  resultDiv.className = 'upload-result';
+  resultDiv.style.display = 'none';
+  steps.forEach(s => { s.className = 'pipeline-step'; s.querySelector('.pipeline-step-icon').textContent = '○'; });
+
+  // Upload
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const resp = await fetch('/api/documents/upload', { method: 'POST', body: formData });
+    const data = await resp.json();
+
+    if (resp.status === 400) {
+      showResult('error', '❌ ' + data.error);
+      return;
+    }
+
+    currentTaskId = data.task_id;
+    // Start polling
+    pollStatus();
+  } catch (err) {
+    showResult('error', '❌ Lỗi kết nối đến server: ' + err.message);
+  }
+}
+
+function pollStatus() {
+  if (!currentTaskId) return;
+
+  pollTimer = setInterval(async () => {
+    try {
+      const resp = await fetch(`/api/documents/ingest-status/${currentTaskId}`);
+      const data = await resp.json();
+
+      updateSteps(data.current_node, data.status);
+
+      if (data.status === 'done') {
+        clearInterval(pollTimer);
+        let html = `✅ <strong>Nạp dữ liệu thành công!</strong><br/>`;
+        if (data.document_id) html += `📋 Document ID: <strong>${data.document_id}</strong><br/>`;
+        if (data.vector_count) html += `🔢 Chunks đã index: <strong>${data.vector_count}</strong><br/>`;
+        if (data.relations_count) html += `🔗 Quan hệ pháp lý: <strong>${data.relations_count}</strong><br/>`;
+        if (data.wiki_slug) html += `📖 Wiki: <a href="/wiki/${data.wiki_slug}" target="_blank">${data.wiki_slug}</a><br/>`;
+        if (data.document_id) html += `<br/>👉 <a href="/documents/${data.document_id}" target="_blank">Xem chi tiết văn bản →</a>`;
+        html += `<br/><button class="upload-another-btn" onclick="resetUpload()">Upload văn bản khác</button>`;
+        showResult('success', html);
+      } else if (data.status === 'failed') {
+        clearInterval(pollTimer);
+        showResult('error', '❌ ' + (data.error_message || 'Pipeline thất bại.') +
+          '<br/><button class="upload-another-btn" onclick="resetUpload()">Thử lại</button>');
+      } else if (data.status === 'duplicate') {
+        clearInterval(pollTimer);
+        let html = `⚠️ <strong>File đã tồn tại trong hệ thống.</strong><br/>`;
+        if (data.error_message) html += data.error_message + '<br/>';
+        if (data.document_id) html += `<br/>👉 <a href="/documents/${data.document_id}" target="_blank">Xem văn bản đã tồn tại →</a>`;
+        html += `<br/><button class="upload-another-btn" onclick="resetUpload()">Upload file khác</button>`;
+        showResult('duplicate', html);
+      }
+    } catch (err) {
+      console.error('Poll error:', err);
+    }
+  }, 1000);
+}
+
+function updateSteps(currentNode, status) {
+  const nodeOrder = ['validate_upload', 'trigger_ocr,extract_docx_text', 'parse_and_chunk',
+                     'db_ingest', 'vector_index', 'extract_relations', 'compile_wiki'];
+  let passed = false;
+
+  steps.forEach((step, idx) => {
+    const nodes = step.getAttribute('data-node').split(',');
+    const icon = step.querySelector('.pipeline-step-icon');
+
+    if (nodes.includes(currentNode)) {
+      step.className = 'pipeline-step active';
+      icon.textContent = '';
+      passed = true;
+    } else if (!passed) {
+      step.className = 'pipeline-step done';
+      icon.textContent = '✓';
+    } else {
+      step.className = 'pipeline-step';
+      icon.textContent = '○';
+    }
+  });
+
+  if (status === 'done') {
+    steps.forEach(s => { s.className = 'pipeline-step done'; s.querySelector('.pipeline-step-icon').textContent = '✓'; });
+  }
+}
+
+function showResult(type, html) {
+  resultDiv.className = `upload-result ${type}`;
+  resultDiv.innerHTML = html;
+  resultDiv.style.display = 'block';
+}
+
+function resetUpload() {
+  currentTaskId = null;
+  if (pollTimer) clearInterval(pollTimer);
+  progressDiv.classList.remove('active');
+  resultDiv.style.display = 'none';
+  fileInput.value = '';
+}
+
+function showToast(msg, type) {
+  let t = document.getElementById('upload-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'upload-toast';
+    t.style.cssText = 'position:fixed;bottom:28px;right:28px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.4);transition:opacity 0.3s;backdrop-filter:blur(12px);font-family:Inter,sans-serif;';
+    document.body.appendChild(t);
+  }
+  const styles = {
+    success: 'background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.3);color:#6ee7b7;',
+    error:   'background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.3);color:#fca5a5;',
+    warn:    'background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.3);color:#fcd34d;',
+  };
+  t.style.cssText += styles[type] || styles.success;
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 4000);
+}
+</script>
+{% endblock %}

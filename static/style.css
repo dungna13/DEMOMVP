@@ -65,9 +65,9 @@ a:hover{color:#fff}
 .search-wrapper{max-width:760px;margin:0 auto;position:relative}
 .search-box{display:flex;align-items:center;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:14px;padding:6px 6px 6px 20px;gap:12px;box-shadow:var(--shadow-glow),var(--shadow-card);backdrop-filter:blur(12px);transition:border-color var(--transition),box-shadow var(--transition)}
 .search-box:focus-within{border-color:var(--gold-500);box-shadow:0 0 0 3px rgba(201,168,76,0.15),var(--shadow-card)}
-.search-icon{color:var(--text-muted);font-size:18px;flex-shrink:0}
+.search-icon{color:var(--text-secondary);font-size:18px;flex-shrink:0}
 .search-input{flex:1;background:none;border:none;outline:none;font-family:'Inter',sans-serif;font-size:16px;color:var(--text-primary);padding:10px 0}
-.search-input::placeholder{color:var(--text-muted)}
+.search-input::placeholder{color:var(--text-secondary)}
 .search-btn{background:linear-gradient(135deg,var(--gold-500),var(--gold-400));border:none;border-radius:10px;padding:12px 24px;color:var(--navy-900);font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:transform var(--transition),box-shadow var(--transition);white-space:nowrap}
 .search-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px var(--gold-glow)}
 .search-btn:active{transform:translateY(0)}

@@ -80,7 +80,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static"), html=False), name="static")
+
+@app.middleware("http")
+async def no_cache_static(request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 # Thêm filters cho Jinja2
@@ -511,7 +520,112 @@ async def api_ingest():
     return {"message": "Đã nạp dữ liệu xong và cập nhật vector index."}
 
 
+# ─── Phase 5: Upload & OCR Ingestion Pipeline ────────────────────────────────
+
+# Task tracking: lưu trạng thái các tiến trình ingestion đang chạy
+_ingestion_tasks: dict = {}
+
+
+@app.get("/upload", response_class=HTMLResponse)
+async def upload_page(request: Request):
+    """Trang upload văn bản PDF/DOCX."""
+    return templates.TemplateResponse(request=request, name="upload.html", context={
+        "request": request,
+    })
+
+
+@app.post("/api/documents/upload")
+async def api_upload_document(request: Request):
+    """REST API: Upload file PDF/DOCX và khởi chạy Ingestion Pipeline."""
+    import uuid as _uuid
+    from fastapi import UploadFile
+
+    form = await request.form()
+    file = form.get("file")
+    if not file or not hasattr(file, "read"):
+        return JSONResponse({"error": "Không tìm thấy file trong request."}, status_code=400)
+
+    file_name = getattr(file, "filename", "unknown")
+    ext = os.path.splitext(file_name)[1].lower()
+    if ext not in (".pdf", ".docx"):
+        return JSONResponse(
+            {"error": f"Định dạng không hỗ trợ: {ext}. Chỉ chấp nhận .pdf và .docx"},
+            status_code=400
+        )
+
+    file_bytes = await file.read()
+    if not file_bytes:
+        return JSONResponse({"error": "File rỗng."}, status_code=400)
+
+    # Tính hash để kiểm tra trùng sớm
+    import hashlib
+    file_hash = hashlib.sha256(file_bytes).hexdigest()
+
+    task_id = f"ingest_{_uuid.uuid4().hex[:12]}"
+
+    # Chạy pipeline trong background
+    async def run_pipeline():
+        try:
+            from src.core.ingestion_graph import run_ingestion_pipeline
+            result = await asyncio.to_thread(
+                run_ingestion_pipeline, file_bytes, file_name
+            )
+            _ingestion_tasks[task_id] = result
+        except Exception as e:
+            logger.error(f"[Upload] Pipeline error: {e}")
+            _ingestion_tasks[task_id] = {
+                "status": "failed",
+                "error_message": str(e),
+                "file_name": file_name,
+            }
+
+    _ingestion_tasks[task_id] = {
+        "status": "pending",
+        "file_name": file_name,
+        "file_hash": f"sha256:{file_hash[:16]}...",
+        "current_node": "",
+    }
+    asyncio.create_task(run_pipeline())
+
+    return JSONResponse(content={
+        "task_id": task_id,
+        "file_name": file_name,
+        "file_hash": f"sha256:{file_hash}",
+        "status": "pending",
+        "message": "File đã được tiếp nhận, đang xử lý.",
+    }, status_code=202)
+
+
+@app.get("/api/documents/ingest-status/{task_id}")
+async def api_ingest_status(task_id: str):
+    """REST API: Theo dõi tiến trình xử lý của Ingestion Pipeline."""
+    task = _ingestion_tasks.get(task_id)
+    if not task:
+        return JSONResponse({"error": "Không tìm thấy task_id."}, status_code=404)
+
+    response = {
+        "task_id": task_id,
+        "status": task.get("status", "unknown"),
+        "current_node": task.get("current_node", ""),
+        "file_name": task.get("file_name", ""),
+    }
+
+    if task.get("document_id"):
+        response["document_id"] = task["document_id"]
+    if task.get("vector_count") is not None:
+        response["vector_count"] = task.get("vector_count", 0)
+    if task.get("relations_count") is not None:
+        response["relations_count"] = task.get("relations_count", 0)
+    if task.get("wiki_slug"):
+        response["wiki_slug"] = task["wiki_slug"]
+    if task.get("error_message"):
+        response["error_message"] = task["error_message"]
+
+    return JSONResponse(content=response)
+
+
 # ─── Phase 3: Wiki Web Pages ─────────────────────────────────────────────────
+
 
 @app.get("/wiki", response_class=HTMLResponse)
 async def wiki_index(request: Request, field: Optional[str] = None, page: int = 1):

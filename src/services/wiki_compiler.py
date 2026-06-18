@@ -14,7 +14,7 @@ import unicodedata
 from datetime import datetime
 from typing import List, Dict, Optional, Tuple
 from src.database.database import get_db
-from src.config import LLM_MODEL
+from src.config import LLM_MODEL, WRITE_WIKI_FILES
 
 logger = logging.getLogger(__name__)
 
@@ -321,21 +321,23 @@ def compile_wiki_for_document(doc_id: int) -> Optional[str]:
         md_rel_path = os.path.join("tom-tat", f"{slug}.md")
         md_abs_path = os.path.join(VAULT_DIR, md_rel_path)
 
-        with open(md_abs_path, "w", encoding="utf-8") as f:
-            f.write(md_content)
+        if WRITE_WIKI_FILES:
+            with open(md_abs_path, "w", encoding="utf-8") as f:
+                f.write(md_content)
 
         # --- Save JSON (backward compat with wiki_data/) ---
         safe_num = doc_number.replace("/", "_").replace("-", "_")
         json_path = os.path.join(WIKI_DATA_DIR, f"{doc_id}_{safe_num}.json")
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump({
-                "source_id": f"wiki_{doc_id}",
-                "document_number": doc_number,
-                "title": doc.get("title", ""),
-                "wiki_data": wiki_data,
-                "model": LLM_MODEL,
-                "processed_at": datetime.now().isoformat(),
-            }, f, ensure_ascii=False, indent=2)
+        if WRITE_WIKI_FILES:
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump({
+                    "source_id": f"wiki_{doc_id}",
+                    "document_number": doc_number,
+                    "title": doc.get("title", ""),
+                    "wiki_data": wiki_data,
+                    "model": LLM_MODEL,
+                    "processed_at": datetime.now().isoformat(),
+                }, f, ensure_ascii=False, indent=2)
 
         # --- Upsert into wiki_pages DB ---
         existing = conn.execute("SELECT id FROM wiki_pages WHERE slug = ?", (slug,)).fetchone()
@@ -370,8 +372,9 @@ def compile_wiki_for_document(doc_id: int) -> Optional[str]:
         except Exception:
             pass
 
-        write_vault_index(conn)
-        append_log(f"Compiled wiki for {doc_number} (doc_id={doc_id}, slug={slug})")
+        if WRITE_WIKI_FILES:
+            write_vault_index(conn)
+            append_log(f"Compiled wiki for {doc_number} (doc_id={doc_id}, slug={slug})")
 
         return json_path
 

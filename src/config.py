@@ -93,3 +93,8 @@ RELATION_TYPES = {
     "vien_dan": "Viện dẫn",
     "dinh_chinh": "Đính chính",
 }
+
+# ─── File Writing Configuration ───────────────────────────────────────────
+# - True: Lưu thêm file .md (trong wiki_vault) và .json (trong wiki_data) ra ổ đĩa (cho Obsidian).
+# - False: Chỉ lưu vào SQLite DB (tiết kiệm dung lượng và tránh tạo hàng nghìn file).
+WRITE_WIKI_FILES = os.getenv("WRITE_WIKI_FILES", "False").lower() in ("true", "1", "yes")

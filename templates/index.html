@@ -8,9 +8,8 @@
 
 <!-- HERO + SEARCH -->
 <section class="hero">
-  <div class="hero-badge">⚡ Phase 2 · Hybrid Search + RAG AI</div>
   <h1 class="hero-title">Tìm kiếm Văn bản<br/>Hành chính Quốc gia</h1>
-  <p class="hero-subtitle">Tra cứu thông minh kết hợp BM25 + Vector Search · Hỏi đáp pháp luật với AI · Quan hệ pháp lý tự động.</p>
+  <p class="hero-subtitle">Hỏi đáp pháp luật với AI · Tra cứu thông tin.</p>
 
   <div class="search-wrapper">
     <form id="search-form" action="/search" method="get">
@@ -22,7 +21,7 @@
           type="text"
           name="q"
           value="{{ query }}"
-          placeholder="Nhập số hiệu, tiêu đề, hoặc mô tả nội dung cần tìm... (/ để focus)"
+          placeholder="Nhập số hiệu, tiêu đề, hoặc mô tả nội dung cần tìm..."
           autocomplete="off"
         />
         {% if filters.doc_type %}<input type="hidden" name="doc_type" value="{{ filters.doc_type }}" />{% endif %}
@@ -63,19 +62,24 @@
     <span class="stat-label">Cơ quan ban hành</span>
   </div>
   {% endif %}
-  <div class="stat-item">
-    <span class="stat-value search-mode-badge">
-      {% if vector_available %}Hybrid{% else %}BM25{% endif %}
-    </span>
-    <span class="stat-label">{% if vector_available %}BM25 + Vector + RRF{% else %}Full-text Search{% endif %}</span>
-  </div>
+</div>
+
+<!-- MOBILE FILTER TOGGLE (only on small screens) -->
+<div class="mobile-filter-toggle-bar">
+  <button class="mobile-filter-btn" id="mobile-filter-btn" onclick="toggleMobileFilter()">
+    ⚙ Bộ lọc
+    {% set active_filter_count = (1 if filters.status else 0) + (1 if filters.doc_type else 0) + (1 if filters.authority else 0) + (1 if filters.year else 0) %}
+    {% if active_filter_count > 0 %}
+    <span class="filter-active-badge">{{ active_filter_count }}</span>
+    {% endif %}
+  </button>
 </div>
 
 <!-- MAIN LAYOUT: SIDEBAR + RESULTS -->
 <div class="main-layout">
 
   <!-- SIDEBAR FACETS -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     {% if facets.effectiveness %}
     <div class="facet-card">
       <div class="facet-title">🔴 Hiệu lực</div>
@@ -253,4 +257,40 @@
   </main>
 </div>
 
+<style>
+.mobile-filter-toggle-bar { display: none; padding: 0.6rem 1rem; border-bottom: 1px solid var(--glass-border); }
+.mobile-filter-btn {
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md); padding: 0.45rem 1rem;
+  color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; font-family: 'Inter', sans-serif;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  transition: background 0.15s, color 0.15s;
+}
+.mobile-filter-btn:hover { background: var(--glass-hover); color: var(--text-primary); }
+.filter-active-badge {
+  background: var(--gold-400); color: var(--navy-900);
+  border-radius: 50%; width: 18px; height: 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 800;
+}
+@media (max-width: 900px) {
+  .mobile-filter-toggle-bar { display: block; }
+  #sidebar { display: none; }
+  #sidebar.mobile-open {
+    display: block; position: fixed; top: 64px; left: 0; right: 0; bottom: 0;
+    z-index: 50; overflow-y: auto; background: var(--navy-800); padding: 1rem;
+  }
+}
+</style>
+<script>
+function toggleMobileFilter() {
+  const sidebar = document.getElementById('sidebar');
+  const btn = document.getElementById('mobile-filter-btn');
+  const isOpen = sidebar.classList.toggle('mobile-open');
+  const activeCount = btn.querySelector('.filter-active-badge');
+  const badge = activeCount ? ` ${activeCount.outerHTML}` : '';
+  btn.innerHTML = isOpen ? '✕ Đóng bộ lọc' : `⚙ Bộ lọc${badge}`;
+}
+</script>
 {% endblock %}
