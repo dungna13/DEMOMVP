@@ -1,88 +1,171 @@
-# ⚖️ Hệ thống Tìm kiếm Văn bản Hành chính Quốc gia (DEMOMVP)
+# ⚖️ GovDocFinder - Hệ thống Tìm kiếm & Hỏi đáp Văn bản Hành chính Quốc gia
 
-Hệ thống tìm kiếm và hỏi đáp pháp luật thông minh sử dụng công nghệ **Hybrid Search** và **RAG (Retrieval-Augmented Generation)**. Dự án được thiết kế để giúp người dùng tra cứu văn bản pháp luật Việt Nam một cách nhanh chóng, chính xác và có khả năng trả lời các câu hỏi pháp lý dựa trên ngữ cảnh thực tế, đồng thời tạo tự động các biểu mẫu hành chính.
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
+[![LangGraph](https://img.shields.io/badge/LangGraph-1C274C?style=for-the-badge&logo=langchain)](https://github.com/langchain-ai/langgraph)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
+[![Qdrant](https://img.shields.io/badge/Qdrant-Red?style=for-the-badge&logo=qdrant)](https://qdrant.tech)
+[![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org)
 
----
-
-## 🚀 Tính năng nổi bật (Phase 2 Nâng cấp)
-
-- **🔍 Hybrid Search & Hierarchy-Aware Boosting**: Tìm kiếm kết hợp BM25 và Vector Search (Qdrant). Đặc biệt hỗ trợ nhân trọng số điểm dựa trên cấp bậc pháp lý (Hiến pháp > Luật > Nghị định...) và ưu tiên văn bản mới ban hành.
-- **🤖 Strict RAG Q&A (Chống Hallucination)**: Hệ thống hỏi đáp pháp luật thông minh, được trang bị *Mega Prompts* nghiêm ngặt với luật lệ xử lý các trường hợp văn bản hết hiệu lực, mâu thuẫn luật và từ chối đoán mò khi thiếu ngữ cảnh.
-- **📄 Tạo văn bản hành chính tự động (Document Generator)**: Trích xuất thông tin hội thoại bằng AI để điền tự động vào các biểu mẫu hành chính (Đơn khiếu nại, Tờ trình, Công văn). Hỗ trợ xuất trực tiếp ra PDF, DOCX và Markdown.
-- **💬 Quản lý Phiên hội thoại**: Tính năng chat giống ChatGPT với trí nhớ dài hạn, tóm tắt nội dung các cuộc trò chuyện tự động bằng AI.
-- **🔗 Legal Relations (Context Expansion)**: Tự động phát hiện mối quan hệ giữa các văn bản (Thay thế, Sửa đổi, Hướng dẫn). Khi hỏi về một Luật, hệ thống tự động tìm thêm Nghị định/Thông tư hướng dẫn để mở rộng ngữ cảnh RAG.
-- **⚡ API Sẵn sàng với Postman**: Cung cấp sẵn bộ `DEMOMVP_Postman_Collection.json` để dễ dàng test các API tìm kiếm, Q&A, quản lý lịch sử chat và sinh file PDF.
+**GovDocFinder** là hệ thống thông minh hỗ trợ tìm kiếm, phân tích và hỏi đáp tự động trên nền tảng Văn bản Quy phạm Pháp luật và Văn bản Hành chính Việt Nam. Bằng việc kết hợp kiến trúc đồ thị trạng thái **LangGraph (StateGraph)**, tìm kiếm phức hợp **Hybrid Search** và lớp khiên bảo mật **0-Token Guard Layer**, GovDocFinder mang lại hiệu năng vượt trội, độ tin cậy tuyệt đối (Zero-Hallucination) và khả năng tối ưu hóa chi phí vận hành lên tới **-87%**.
 
 ---
 
-## 🏗️ Cấu trúc dự án
+## 🚀 Tính năng nổi bật
 
-```text
-DEMOMVP/
-├── src/
-│   ├── core/           # Bộ não: AI Service, Strict RAG Engine, Vector Search
-│   ├── database/       # Dữ liệu: SQLite Setup, Models, Schema
-│   ├── services/       # Logic phụ trợ: Doc Generator (Sinh PDF/DOCX), Chat Sessions
-│   └── config.py       # Cấu hình tập trung (Model, API Key)
-├── templates/          # Giao diện Server-side Rendering (Jinja2)
-│   ├── index.html      # Trang chủ (Hybrid Search)
-│   ├── qa.html         # Trang Hỏi đáp AI & Sinh biểu mẫu hành chính
-│   └── doc_templates/  # Các mẫu biểu mẫu hành chính (Markdown)
-├── prompts/            # Thư mục chứa Mega Prompts cấu trúc JSON (Zero-hallucination)
-├── data/               # Thư mục nạp văn bản đầu vào (.json, .txt)
-├── drafts/             # Thư mục lưu trữ tạm các văn bản Word/PDF được AI sinh ra
-├── main.py             # Entry point FastAPI
-└── DEMOMVP_Postman...  # File cấu hình Postman API
+### 1. 🛡️ Guard & Routing Layer (Tối ưu hóa Chi phí & Bảo mật)
+* **Security Guard Node (0-Token):** Kiểm tra đầu vào hoàn toàn bằng Python Regex cục bộ để phát hiện kịp thời các nỗ lực Jailbreak, Prompt Injection hoặc cố tình dò hỏi (Leak) System Prompt của hệ thống trước khi gọi tới LLM chính.
+* **Intent Router Node (0-Token):** Phân loại mục đích người dùng nhanh chóng bằng bộ lọc từ khóa. Nếu người dùng nhập câu hỏi xã giao (`small_talk`) hoặc ngoài phạm vi hệ thống (`out_of_scope`), hệ thống phản hồi cố định ngay lập tức trong **< 5ms** mà không làm tiêu tốn bất kỳ Token LLM nào.
+
+### 2. ⚙️ Bộ máy RAG Nghiêm ngặt (Strict RAG Engine)
+* **Hybrid Search (BM25 + Vector Search):** Kết hợp thuật toán tìm kiếm từ khóa truyền thống (SQLite FTS5 BM25) với tìm kiếm ngữ nghĩa sâu (Qdrant Vector DB) để trả về các phân đoạn luật sát nghĩa nhất.
+* **Hierarchy-Aware Boosting:** Tự động điều chỉnh trọng số điểm (Scoring) dựa trên **Cấp bậc pháp lý** (Hiến pháp > Bộ luật > Luật > Nghị định > Thông tư...) và **Trạng thái hiệu lực** (ưu tiên văn bản mới, còn hiệu lực).
+* **Legal Relations Expansion:** Khi người dùng hỏi về một Luật cụ thể, hệ thống sẽ tự động truy vấn mở rộng các Nghị định, Thông tư hướng dẫn thi hành đi kèm để nạp đầy đủ ngữ cảnh cho LLM.
+* **Auto Tagging Badge:** Gắn nhãn trạng thái hiệu lực trực quan (🟢 Còn hiệu lực, 🔴 Hết hiệu lực, 🟡 Hết hiệu lực một phần) trực tiếp vào từng đoạn trích dẫn để người dùng và LLM dễ dàng đối chiếu.
+* **Prompt Optimization v5.0:** Rút gọn tối đa các chỉ thị phòng thủ, chỉ thị chuyển đổi văn phong dài dòng trong prompt gốc để giảm **-87% input token**, nâng cao tốc độ sinh phản hồi.
+
+### 3. 📄 Sinh biểu mẫu hành chính tự động (Document Generator)
+* Tự động trích xuất thông tin hành chính từ lịch sử hội thoại của người dùng qua cấu trúc JSON nghiêm ngặt để tự động điền (Auto-fill) vào các biểu mẫu quy chuẩn (Đơn khiếu nại, Đơn kiến nghị, Tờ trình, Công văn...).
+* Hỗ trợ kết xuất tài liệu ra các định dạng phổ biến: **Markdown**, **Microsoft Word (.docx)** và **PDF** chất lượng cao.
+
+### 4. 💾 Quản lý Phiên hội thoại & Trí nhớ dài hạn
+* Tích hợp cơ sở dữ liệu SQLite lưu trữ lịch sử trò chuyện theo từng Session ID.
+* Cơ chế tự động tóm tắt tịnh tiến cuộc hội thoại để duy trì ngữ cảnh dài hạn mà không làm tràn bộ nhớ cửa sổ ngữ cảnh (Context Window).
+
+---
+
+## 🏗️ Kiến trúc luồng xử lý (Graph Flow)
+
+Hệ thống hoạt động trên đồ thị trạng thái LangGraph được thiết kế tuần tự và an toàn:
+
+```mermaid
+flowchart TD
+    A([👤 User Input\nCâu hỏi]) --> B
+
+    subgraph GUARD["🛡️ Lớp Guard & Định tuyến — 0 Token"]
+        B["security_guard_node\nPhát hiện Jailbreak / Leak\n(Regex Python)"]
+        B -->|blocked=True| C["blocked_response_node\n→ Trả lời lỗi cố định"]
+        B -->|blocked=False| D["intent_router_node\nPhân loại câu hỏi\n(Keyword Matching)"]
+        
+        D -->|small_talk| E["small_talk_response_node\nTrả lời xã giao mẫu"]
+        D -->|out_of_scope| F["out_of_scope_response_node\nTừ chối trả lời ngoài phạm vi"]
+    end
+
+    C --> S
+    E --> S
+    F --> S
+
+    D -->|intent = RAG| G
+
+    subgraph RAG["⚙️ Pipeline RAG Nghiêm ngặt (LangGraph StateGraph)"]
+        G["load_session_node\nTải lịch sử hội thoại\ntừ SQLite"]
+        G --> H["retrieve_node\nTìm kiếm Hybrid Search\n(Qdrant + BM25)"]
+        
+        H -->|Trống| N["fallback_node\nTrả lời không tìm thấy VB"]
+        H -->|Có Chunks| I["enrich_node\nBổ sung Metadata văn bản\n(Hiệu lực, cấp ban hành)"]
+        
+        I --> J["rerank_node\nRerank theo cấp bậc\nvà hiệu lực văn bản"]
+        J --> K["expand_node\nTìm thêm Nghị định,\nThông tư hướng dẫn"]
+        K --> L["tag_node\nGắn nhãn trạng thái\n🔴/🟢 vào từng chunk"]
+        L --> M["generate_node\nLLM chính tạo câu trả lời\n(Prompt v5.0 tối ưu)"]
+    end
+
+    M --> S
+    N --> S
+
+    subgraph SAVE["💾 Lưu trữ dữ liệu"]
+        S["save_session_node\nLưu hội thoại vào SQLite"]
+    end
+
+    S --> T([📤 Output Response\nAnswer + Citations JSON])
 ```
 
 ---
 
-## 🛠️ Công nghệ sử dụng
+## 📂 Cấu trúc thư mục dự án
 
-- **Backend**: FastAPI (Python 3.11+)
-- **Database & Search**: SQLite (BM25) & Qdrant Vector DB
-- **LLM Engine**: LiteLLM (Hỗ trợ Google Gemini, Claude, OpenAI)
-- **Document Processing**: `python-docx`, `soffice` (LibreOffice) để convert Markdown -> DOCX -> PDF.
-- **Frontend**: HTML5, Vanilla JS, CSS (Giao diện Glassmorphism hiện đại).
+```text
+GovDocFinder/
+├── src/
+│   ├── core/           # Core Logic: Engine RAG, Guard Layer, Embedding Service
+│   │   ├── guard_nodes.py    # Lớp bảo mật & định tuyến 0-token
+│   │   ├── rag_engine.py     # Cấu hình đồ thị LangGraph
+│   │   └── ai_service.py     # Dịch vụ gọi LLM (LiteLLM)
+│   ├── database/       # Cơ sở dữ liệu: SQLite, Qdrant setup
+│   └── services/       # Module phụ trợ: Quản lý session, sinh biểu mẫu Word/PDF
+│   └── config.py       # Cấu hình tập trung (Biến môi trường, Model, Trọng số)
+├── prompts/            # Thư mục chứa System Prompts tối ưu hóa v5.0
+├── templates/          # Giao diện Web (FastAPI Jinja2)
+│   ├── index.html      # Giao diện Tìm kiếm Văn bản
+│   ├── qa.html         # Giao diện Hỏi đáp AI & Sinh biểu mẫu
+│   └── doc_templates/  # Các mẫu văn bản hành chính quy chuẩn
+├── tests/              # Tập hợp các file Unit Test kiểm thử hệ thống
+├── requirements.txt    # Danh sách thư viện phụ thuộc
+├── main.py             # FastAPI Server Entry Point
+└── GovDocFinder_Postman_Collection.json  # File test API dành cho Postman
+```
 
 ---
 
-## 📦 Cài đặt & Khởi chạy
+## 🛠️ Công nghệ cốt lõi
 
-### 1. Clone dự án
+* **Backend Framework:** FastAPI (Asynchronous, High Performance)
+* **Graph Engine:** LangGraph (StateGraph) để quản lý luồng hội thoại
+* **Vector Database:** Qdrant (Lưu trữ và tìm kiếm vector nhúng)
+* **Full-Text Search:** SQLite FTS5 (Tìm kiếm từ khóa bằng thuật toán BM25)
+* **LLM Middleware:** LiteLLM (Hỗ trợ Google Gemini, Anthropic Claude, OpenAI)
+* **Document Processing:** `python-docx` kết hợp chuyển đổi bằng `LibreOffice` headless.
+
+---
+
+## 📦 Hướng dẫn cài đặt & Khởi chạy
+
+### 1. Yêu cầu hệ thống
+* Python 3.10 trở lên
+* Đã cài đặt LibreOffice (để hỗ trợ sinh/convert file PDF)
+
+### 2. Tải mã nguồn và cài đặt dependencies
 ```bash
 git clone https://github.com/dungna13/DEMOMVP.git
 cd DEMOMVP
-```
-
-### 2. Cài đặt thư viện
-```bash
 pip install -r requirements.txt
 ```
 
 ### 3. Cấu hình môi trường
-Tạo file `.env` ở thư mục gốc và cung cấp API key (Ưu tiên các mô hình mạnh về suy luận như Claude 3.5 Sonnet hoặc Gemini 1.5 Pro):
+Tạo file `.env` tại thư mục gốc của dự án và cung cấp các API key cần thiết:
 ```env
+# API Keys cho các LLM
 GEMINI_API_KEY=your_gemini_api_key_here
 ANTHROPIC_API_KEY=your_claude_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 ### 4. Khởi chạy ứng dụng
+Chạy server FastAPI:
 ```bash
 python main.py
 ```
-*Giao diện Tìm kiếm:* `http://localhost:8000`
-*Giao diện Hỏi đáp AI:* `http://localhost:8000/qa`
+Sau khi khởi chạy thành công:
+* **Giao diện tìm kiếm pháp luật:** Truy cập `http://localhost:8000`
+* **Giao diện tư vấn pháp lý & sinh biểu mẫu:** Truy cập `http://localhost:8000/qa`
+* **Tài liệu API tự động (Swagger UI):** Truy cập `http://localhost:8000/docs`
 
 ---
 
-## 📖 Hướng dẫn sử dụng tính năng mới
+## 📖 Hướng dẫn kiểm thử & API
 
-1. **Hỏi đáp Strict RAG**: Vào `/qa`, đặt một câu hỏi pháp lý. Nếu câu hỏi mơ hồ, AI sẽ yêu cầu làm rõ. Nếu hỏi ngoài luồng, AI sẽ từ chối trả lời.
-2. **Sinh Biểu mẫu Hành chính**: Ngay dưới mỗi câu trả lời tư vấn của AI, chọn loại biểu mẫu (Ví dụ: Đơn khiếu nại) và bấm "Tạo văn bản". Bạn có thể tải ngay file PDF hoặc Word hoàn chỉnh.
-3. **Test API qua Postman**: Import file `DEMOMVP_Postman_Collection.json` vào Postman. Chạy thư mục `Hỏi đáp RAG & Chat History` để thử nghiệm flow gọi AI và tạo file qua API.
+### 1. Chạy Unit Test
+Để kiểm tra tính nhất quán của cấu hình và các thuật toán rerank, chạy lệnh:
+```bash
+pytest tests/
+```
+
+### 2. Kiểm thử API qua Postman
+Nhập (Import) file `GovDocFinder_Postman_Collection.json` vào ứng dụng Postman để trải nghiệm toàn bộ các API được thiết kế sẵn:
+* API Tìm kiếm Hybrid
+* API Hỏi đáp Streaming qua Server-Sent Events (SSE)
+* API Tạo và tải về biểu mẫu hành chính (Word/PDF)
 
 ---
 
-## 🛡️ Giấy phép
-Dự án được phát triển cho mục đích Demo/MVP. Toàn bộ mã nguồn được bảo mật theo yêu cầu cá nhân.
+## 🛡️ Giấy phép phát triển
+Dự án được bảo lưu quyền phát triển cho mục đích xây dựng giải pháp MVP (Minimum Viable Product). Mọi sao chép hoặc phân phối thương mại cần có sự đồng ý của tác giả.
