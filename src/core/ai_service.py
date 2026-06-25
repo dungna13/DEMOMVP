@@ -204,7 +204,9 @@ def generate_qa_answer(
     # Build context string
     context_parts = []
     for i, chunk in enumerate(context_chunks):
-        doc_info = f"Tài liệu [{i+1}] (Số hiệu: {chunk.get('doc_number', 'N/A')}, Tên: {chunk.get('doc_title', 'N/A')}"
+        tag = chunk.get("_tag", "")
+        tag_part = f" {tag}" if tag else ""
+        doc_info = f"Tài liệu [{i+1}]{tag_part} (Số hiệu: {chunk.get('doc_number', 'N/A')}, Tên: {chunk.get('doc_title', 'N/A')}"
         if chunk.get("dieu"):
             doc_info += f", Điều {chunk['dieu']}"
         if chunk.get("khoan"):

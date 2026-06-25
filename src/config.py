@@ -84,6 +84,43 @@ EFFECTIVENESS_BOOST = {
     "het_hieu_luc": 0.3,
 }
 
+# ─── Hierarchy Labels (dùng để tag chunk trước khi gửi LLM) ─────────────
+HIERARCHY_LABELS: dict[str, tuple[int, str]] = {
+    # (hierarchy_rank, tên hiển thị) — khớp với bảng document_types trong DB
+    # rank cao = hiệu lực pháp lý cao hơn (thang 1–15)
+    "hien_phap":                (15, "HIẾN PHÁP"),
+    "luat":                     (14, "LUẬT"),
+    "bo_luat":                  (14, "BỘ LUẬT"),
+    "nghi_quyet_qh":            (14, "NQ QUỐC HỘI"),
+    "phap_lenh":                (13, "PHÁP LỆNH"),
+    "nghi_quyet_ubtvqh":        (13, "NQ UBTVQH"),
+    "lenh":                     (12, "LỆNH CTN"),
+    "quyet_dinh_ctn":           (12, "QĐ CHỦ TỊCH NƯỚC"),
+    "nghi_dinh":                (11, "NGHỊ ĐỊNH"),
+    "quyet_dinh_ttg":           (10, "QĐ THỦ TƯỚNG"),
+    "nghi_quyet_hdtp":          (9,  "NQ HĐTP TAND TC"),
+    "an_le":                    (9,  "ÁN LỆ"),
+    "thong_tu":                 (8,  "THÔNG TƯ"),
+    "nghi_quyet_hdnd_tinh":     (7,  "NQ HĐND TỈNH"),
+    "nghi_quyet":               (7,  "NGHỊ QUYẾT"),
+    "quyet_dinh_ubnd_tinh":     (6,  "QĐ UBND TỈNH"),
+    "quyet_dinh":               (6,  "QUYẾT ĐỊNH"),
+    "chi_thi":                  (6,  "CHỈ THỊ"),
+    "vban_qppl_dac_biet":       (5,  "VB QPPL ĐP ĐB"),
+    "nghi_quyet_hdnd_huyen":    (4,  "NQ HĐND HUYỆN"),
+    "quyet_dinh_ubnd_huyen":    (3,  "QĐ UBND HUYỆN"),
+    "cong_van":                 (3,  "CÔNG VĂN"),
+    "nghi_quyet_hdnd_xa":       (2,  "NQ HĐND XÃ"),
+    "quyet_dinh_ubnd_xa":       (1,  "QĐ UBND XÃ"),
+}
+
+EFFECTIVENESS_LABELS: dict[str, str] = {
+    "con_hieu_luc":          "🟢",
+    "chua_co_hieu_luc":      "🔵",
+    "het_hieu_luc_mot_phan": "🟡",
+    "het_hieu_luc":          "🔴",
+}
+
 # ─── Relation Types ──────────────────────────────────────────────────────
 RELATION_TYPES = {
     "thay_the": "Thay thế",

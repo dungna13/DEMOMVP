@@ -4,15 +4,24 @@ LangGraph StateGraph: Retrieve → Re-rank → Generate Answer with Citations
 """
 
 import logging
-import json
-from typing import List, Dict, Optional, Any, TypedDict, AsyncGenerator
+from typing import List, Dict, Optional, TypedDict, AsyncGenerator
 
 from langgraph.graph import StateGraph, END
 
 from src.database.database import get_db
-from src.config import RAG_TOP_K_RETRIEVE, RAG_TOP_K_CONTEXT
+from src.config import RAG_TOP_K_RETRIEVE, RAG_TOP_K_CONTEXT, HIERARCHY_LABELS, EFFECTIVENESS_LABELS
 
 logger = logging.getLogger(__name__)
+
+
+from src.core.guard_nodes import (
+    security_guard_node,
+    intent_router_node,
+    _route_by_intent,
+    small_talk_response_node,
+    out_of_scope_response_node,
+    blocked_response_node,
+)
 
 
 # ── State Definition ──────────────────────────────────────────────────────────
@@ -22,10 +31,16 @@ class RAGState(TypedDict, total=False):
     session_id: Optional[str]
     chat_history: List[Dict]
     session_summary: Optional[str]
+    # Guard & Router fields (thêm mới)
+    blocked: bool
+    threat_type: Optional[str]
+    intent: str
+    # RAG pipeline fields
     raw_chunks: List[Dict]
     enriched_chunks: List[Dict]
     reranked_chunks: List[Dict]
     expanded_chunks: List[Dict]
+    tagged_chunks: List[Dict]
     answer: str
     citations: List[Dict]
     model: str
@@ -123,7 +138,7 @@ def enrich_chunks_with_metadata(chunks: List[Dict]) -> List[Dict]:
     return chunks
 
 
-def rerank_chunks(question: str, chunks: List[Dict], top_k: int = RAG_TOP_K_CONTEXT) -> List[Dict]:
+def rerank_chunks(chunks: List[Dict], top_k: int = RAG_TOP_K_CONTEXT) -> List[Dict]:
     """Re-rank theo effectiveness, doc_type hierarchy, và specificity."""
     if not chunks:
         return []
@@ -131,7 +146,8 @@ def rerank_chunks(question: str, chunks: List[Dict], top_k: int = RAG_TOP_K_CONT
     for chunk in chunks:
         base = chunk.get("score", 0)
         eff_boost = EFFECTIVENESS_BOOST.get(chunk.get("effectiveness_status", "con_hieu_luc"), 1.0)
-        type_boost = {"luat": 1.5, "bo_luat": 1.5, "nghi_dinh": 1.2}.get(chunk.get("doc_type", ""), 1.0)
+        rank, _ = HIERARCHY_LABELS.get(chunk.get("doc_type", ""), (5, ""))
+        type_boost = 1.0 + (rank / 30.0)  # rank 15 → 1.5, rank 1 → 1.03
         spec_boost = 1.0 + (0.2 if chunk.get("dieu") else 0) + (0.1 if chunk.get("khoan") else 0)
         chunk["rerank_score"] = base * eff_boost * type_boost * spec_boost
     chunks.sort(key=lambda x: x.get("rerank_score", 0), reverse=True)
@@ -228,10 +244,29 @@ def enrich_node(state: RAGState) -> RAGState:
 def rerank_node(state: RAGState) -> RAGState:
     """Node: Re-rank và lọc chunks."""
     state["reranked_chunks"] = rerank_chunks(
-        state["question"],
         state.get("enriched_chunks", []),
         top_k=RAG_TOP_K_CONTEXT,
     )
+    return state
+
+
+def tag_chunks(chunks: List[Dict]) -> List[Dict]:
+    """Gắn tag thứ bậc + hiệu lực vào mỗi chunk để LLM không cần tự suy luận."""
+    tagged = []
+    for chunk in chunks:
+        doc_type = chunk.get("doc_type", "")
+        eff = chunk.get("effectiveness_status", "")
+        rank, type_name = HIERARCHY_LABELS.get(doc_type, (9, doc_type.upper() or "VĂN BẢN"))
+        eff_icon = EFFECTIVENESS_LABELS.get(eff, "⚪")
+        chunk = dict(chunk)
+        chunk["_tag"] = f"[{eff_icon} | {type_name} | Hiệu lực pháp lý: {rank}/15]"
+        tagged.append(chunk)
+    return tagged
+
+
+def tag_node(state: RAGState) -> RAGState:
+    """Node: Gắn tag thứ bậc + hiệu lực vào chunks để LLM đọc trực tiếp, không cần suy luận."""
+    state["tagged_chunks"] = tag_chunks(state.get("expanded_chunks", []))
     return state
 
 
@@ -248,7 +283,7 @@ def expand_node(state: RAGState) -> RAGState:
 def generate_node(state: RAGState) -> RAGState:
     """Node: Gọi LLM sinh câu trả lời từ context."""
     from src.core.ai_service import generate_qa_answer, is_ai_available
-    context_chunks = state.get("expanded_chunks", [])
+    context_chunks = state.get("tagged_chunks", [])
     if is_ai_available():
         result = generate_qa_answer(
             question=state["question"],
@@ -307,21 +342,52 @@ def save_session_node(state: RAGState) -> RAGState:
 
 def _build_rag_graph() -> StateGraph:
     graph = StateGraph(RAGState)
+
+    # ── Guard & Router Nodes (mới) ─────────────────────────────────────────────
+    graph.add_node("security_guard", security_guard_node)
+    graph.add_node("intent_router", intent_router_node)
+    graph.add_node("small_talk_response", small_talk_response_node)
+    graph.add_node("out_of_scope_response", out_of_scope_response_node)
+    graph.add_node("blocked_response", blocked_response_node)
+
+    # ── RAG Pipeline Nodes (giữ nguyên) ──────────────────────────────────────
     graph.add_node("load_session", load_session_node)
     graph.add_node("retrieve", retrieve_node)
     graph.add_node("enrich", enrich_node)
     graph.add_node("rerank", rerank_node)
     graph.add_node("expand", expand_node)
+    graph.add_node("tag", tag_node)
     graph.add_node("generate", generate_node)
     graph.add_node("fallback", fallback_node)
     graph.add_node("save_session", save_session_node)
 
-    graph.set_entry_point("load_session")
+    # ── Edges ─────────────────────────────────────────────────────────────────
+    # Entry: security_guard → intent_router → conditional routing
+    graph.set_entry_point("security_guard")
+    graph.add_edge("security_guard", "intent_router")
+    graph.add_conditional_edges(
+        "intent_router",
+        _route_by_intent,
+        {
+            "load_session": "load_session",   # → RAG pipeline
+            "small_talk": "small_talk_response",
+            "out_of_scope": "out_of_scope_response",
+            "blocked_response": "blocked_response",
+        },
+    )
+
+    # Short-circuit: các intent không cần RAG → thẳng save_session
+    graph.add_edge("small_talk_response", "save_session")
+    graph.add_edge("out_of_scope_response", "save_session")
+    graph.add_edge("blocked_response", "save_session")
+
+    # RAG pipeline (giữ nguyên flow cũ)
     graph.add_edge("load_session", "retrieve")
     graph.add_conditional_edges("retrieve", _should_generate, {"enrich": "enrich", "fallback": "fallback"})
     graph.add_edge("enrich", "rerank")
     graph.add_edge("rerank", "expand")
-    graph.add_edge("expand", "generate")
+    graph.add_edge("expand", "tag")
+    graph.add_edge("tag", "generate")
     graph.add_edge("generate", "save_session")
     graph.add_edge("fallback", "save_session")
     graph.add_edge("save_session", END)
@@ -344,13 +410,8 @@ def ask_question(
     question: str,
     session_id: Optional[str] = None,
     chat_history: Optional[List[Dict]] = None,
-    top_k_retrieve: int = RAG_TOP_K_RETRIEVE,
-    top_k_context: int = RAG_TOP_K_CONTEXT,
 ) -> Dict:
-    """
-    Pipeline RAG hoàn chỉnh qua LangGraph StateGraph.
-    Signature giữ nguyên để không break main.py.
-    """
+    """Pipeline RAG hoàn chỉnh qua LangGraph StateGraph."""
     app = _get_rag_app()
     initial_state: RAGState = {
         "question": question,
